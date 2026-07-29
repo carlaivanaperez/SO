@@ -24,7 +24,8 @@ export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 
 /** Ajuste de stock (ingreso/egreso/corrección) para un producto. */
 export const stockAdjustmentSchema = z.object({
-  warehouseId: z.string().cuid(),
+  // No exigimos cuid: los depósitos pueden tener ids propios (ej. "wh_default").
+  warehouseId: z.string().min(1),
   quantity: z.coerce.number(), // positivo = ingreso, negativo = egreso
   type: z.enum(["PURCHASE", "ADJUSTMENT", "RETURN", "TRANSFER"]),
   reason: z.string().trim().max(500).optional(),

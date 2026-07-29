@@ -28,3 +28,8 @@ export function clearSession(): void {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
 }
+
+// Gestión de catálogo/stock: solo ADMIN y MANAGER (el CASHIER solo vende).
+export function canManage(user: SessionUser | null): boolean {
+  return user?.role === "ADMIN" || user?.role === "MANAGER";
+}

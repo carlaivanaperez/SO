@@ -5,6 +5,10 @@ import type {
   AuthResponse,
   LoginInput,
   CreateSaleInput,
+  CreateProductInput,
+  UpdateProductInput,
+  StockAdjustmentInput,
+  ProductUnitDTO,
 } from "@ferrestock/shared";
 import { getToken } from "./auth";
 
@@ -22,6 +26,27 @@ export type SaleResult = {
   id: string;
   number: number;
   total: string;
+};
+
+// Detalle de producto (los Decimal de Prisma llegan como string por JSON).
+export type ProductDetail = {
+  id: string;
+  sku: string;
+  barcode: string | null;
+  name: string;
+  description: string | null;
+  brand: string | null;
+  unit: ProductUnitDTO;
+  costPrice: string;
+  salePrice: string;
+  taxRate: string;
+  active: boolean;
+};
+
+export type Warehouse = {
+  id: string;
+  name: string;
+  isDefault: boolean;
 };
 
 // Error con el status HTTP, para que la UI distinga 401 (relogin) de otros.
@@ -72,4 +97,36 @@ export async function createSale(input: CreateSaleInput): Promise<SaleResult> {
     method: "POST",
     body: JSON.stringify(input),
   });
+}
+
+export async function fetchProduct(id: string): Promise<ProductDetail> {
+  return request<ProductDetail>(`/api/products/${id}`);
+}
+
+export async function createProduct(input: CreateProductInput): Promise<ProductDetail> {
+  return request<ProductDetail>("/api/products", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateProduct(
+  id: string,
+  input: UpdateProductInput
+): Promise<ProductDetail> {
+  return request<ProductDetail>(`/api/products/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function adjustStock(id: string, input: StockAdjustmentInput): Promise<unknown> {
+  return request(`/api/products/${id}/stock`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function fetchWarehouses(): Promise<Warehouse[]> {
+  return request<Warehouse[]>("/api/warehouses");
 }

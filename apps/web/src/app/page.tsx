@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { fetchProducts, ApiError, type ProductRow } from "@/lib/api";
-import { getToken, getUser, clearSession, type SessionUser } from "@/lib/auth";
+import { getToken, getUser, clearSession, canManage, type SessionUser } from "@/lib/auth";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -47,6 +47,8 @@ export default function DashboardPage() {
     router.replace("/login");
   }
 
+  const manage = canManage(user);
+
   return (
     <main style={{ padding: 24, maxWidth: 960, margin: "0 auto" }}>
       <header
@@ -69,7 +71,30 @@ export default function DashboardPage() {
         </nav>
       </header>
 
-      <p style={{ color: "#666" }}>Catálogo y stock</p>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <p style={{ color: "#666" }}>Catálogo y stock</p>
+        {manage && (
+          <Link
+            href="/products/new"
+            style={{
+              background: "#1a56db",
+              color: "white",
+              padding: "8px 12px",
+              borderRadius: 6,
+              textDecoration: "none",
+            }}
+          >
+            + Nuevo producto
+          </Link>
+        )}
+      </div>
 
       <input
         placeholder="Buscar por nombre, SKU o código de barras…"
@@ -93,6 +118,7 @@ export default function DashboardPage() {
             <th>Producto</th>
             <th>Precio</th>
             <th>Stock</th>
+            {manage && <th>Acciones</th>}
           </tr>
         </thead>
         <tbody>
@@ -104,12 +130,18 @@ export default function DashboardPage() {
                 <td>{p.name}</td>
                 <td>${Number(p.salePrice).toLocaleString("es-AR")}</td>
                 <td>{stock}</td>
+                {manage && (
+                  <td style={{ display: "flex", gap: 12 }}>
+                    <Link href={`/products/${p.id}/edit`}>Editar</Link>
+                    <Link href={`/products/${p.id}/stock`}>Stock</Link>
+                  </td>
+                )}
               </tr>
             );
           })}
           {products.length === 0 && !error && (
             <tr>
-              <td colSpan={4} style={{ padding: 16, color: "#888" }}>
+              <td colSpan={manage ? 5 : 4} style={{ padding: 16, color: "#888" }}>
                 No hay productos para mostrar.
               </td>
             </tr>

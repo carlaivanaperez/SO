@@ -187,18 +187,21 @@ mandarlo en `Authorization: Bearer <token>` en cada request.
 
 Ya hecho: modelo de datos, **auth JWT + roles**, migración inicial
 (`packages/db/prisma/migrations/`), flujos de ventas y stock, bot de WhatsApp,
-y en la **web**: login, dashboard de catálogo protegido y **POS** (punto de venta).
+y en la **web**: login, dashboard de catálogo protegido, **POS** (punto de venta),
+**ABM de productos** y **ajustes de stock**.
 
-**UI web** (`apps/web/src/`): `lib/auth.ts` guarda el token JWT en `localStorage`;
-`lib/api.ts` es el cliente HTTP que adjunta `Authorization: Bearer`. Rutas:
-`/login`, `/` (catálogo + buscador), `/pos` (busca productos, arma carrito y
-registra la venta). Todas las páginas son client components y redirigen a `/login`
-ante un `401`.
+**UI web** (`apps/web/src/`): `lib/auth.ts` guarda el token JWT en `localStorage`
+y expone `canManage()` (gate de ADMIN/MANAGER); `lib/api.ts` es el cliente HTTP
+que adjunta `Authorization: Bearer`. Rutas: `/login`, `/` (catálogo + buscador +
+acciones de gestión), `/pos` (carrito + venta), `/products/new`,
+`/products/[id]/edit` y `/products/[id]/stock` (usa `GET /api/warehouses`).
+`components/ProductForm.tsx` es el formulario compartido de alta/edición. Todas
+las páginas son client components y redirigen a `/login` ante un `401`.
 
 Lo que **falta**, en orden sugerido:
 
-1. **UI web/mobile**: falta alta/edición de productos, ajustes de stock, reportes
-   en la web; y toda la app **mobile** (hoy solo lista el catálogo).
+1. **Reportes web** (ventas por período, stock bajo mínimo) y la app **mobile**
+   completa (hoy solo lista el catálogo).
 2. **Tests**: no hay tests todavía. Priorizar la lógica de `sales.service` (cálculo
    de totales, descuento de stock) y el matching de WhatsApp.
 3. **Matching de productos en WhatsApp**: hoy es `contains` simple; mejorar con

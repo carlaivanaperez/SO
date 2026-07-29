@@ -211,6 +211,11 @@ Lo que **falta**, en orden sugerido:
 
 Cuando completes un punto, actualizá esta sección y las partes relevantes del archivo.
 
+**Estado de verificación:** `pnpm typecheck` pasa en los 5 paquetes y
+`pnpm --filter @ferrestock/web build` compila las 7 rutas. Todavía **no** se
+levantó contra una base real (requiere Docker/Postgres, que no estaba disponible
+en el entorno de desarrollo usado). Para verlo funcionando: seguí §3.
+
 ---
 
 ## 10. Flujo de trabajo con Git

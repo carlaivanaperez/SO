@@ -7,7 +7,11 @@
     "outDir": "dist",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "composite": false
+    "composite": false,
+    // App final (no es librería consumida): no emitimos .d.ts. Además evita
+    // el error TS2742 al inferir tipos de Prisma a través de pnpm.
+    "declaration": false,
+    "declarationMap": false
   },
   "include": ["src/**/*.ts"]
 }

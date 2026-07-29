@@ -8,7 +8,11 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // Conexión "pooled" (pgbouncer) para la app: aguanta muchas conexiones.
   url      = env("DATABASE_URL")
+  // Conexión directa para migraciones (Neon/Supabase la exponen aparte).
+  // En local con Docker apuntá ambas a la misma URL.
+  directUrl = env("DIRECT_URL")
 }
 
 // ─── Usuarios del panel (staff de la ferretería) ─────────────────

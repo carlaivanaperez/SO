@@ -81,6 +81,17 @@ URLs por defecto: API `http://localhost:3001/api` · Web `http://localhost:3000`
 
 Usuario seed: `admin@ferreteria.local` / `admin1234` (solo dev).
 
+**Base de datos:** Prisma usa `DATABASE_URL` (conexión *pooled*, para la app) y
+`DIRECT_URL` (conexión directa, para migraciones) — ver `datasource db` en el
+schema. En local con Docker, ambas apuntan a la misma URL.
+
+**Postgres en la nube (Neon):** alternativa gratis a Docker, sin depender de una
+PC. En Neon: crear proyecto → copiar las dos cadenas ("Pooled connection" →
+`DATABASE_URL`; conexión directa → `DIRECT_URL`) al `.env`, y correr
+`pnpm db:migrate && pnpm db:seed`. No hace falta `docker compose up`. La base en
+la nube guarda los datos; la API/web se pueden correr localmente o también
+hospedarse (deploy: §9).
+
 ---
 
 ## 4. Comandos clave

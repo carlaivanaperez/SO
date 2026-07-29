@@ -75,10 +75,10 @@ model Product {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  stockItems     StockItem[]
-  stockMovements StockMovement[]
-  saleItems      SaleItem[]
-  priceHistory   PriceHistory[]
+  stockItems      StockItem[]
+  stockMovements  StockMovement[]
+  saleItems       SaleItem[]
+  priceHistory    PriceHistory[]
   whatsappQueries WhatsAppQuery[]
 
   @@index([name])
@@ -235,17 +235,17 @@ enum WhatsAppQueryStatus {
 // Cada consulta entrante de un cliente por WhatsApp (para auditar,
 // medir demanda y mejorar el matching de productos).
 model WhatsAppQuery {
-  id              String              @id @default(cuid())
-  fromPhone       String              @map("from_phone") // E.164
-  customerId      String?             @map("customer_id")
-  customer        Customer?           @relation(fields: [customerId], references: [id])
-  messageText     String              @map("message_text")
-  matchedProductId String?            @map("matched_product_id")
-  matchedProduct  Product?            @relation(fields: [matchedProductId], references: [id])
-  status          WhatsAppQueryStatus @default(RECEIVED)
-  responseText    String?             @map("response_text")
-  createdAt       DateTime            @default(now()) @map("created_at")
-  respondedAt     DateTime?           @map("responded_at")
+  id               String              @id @default(cuid())
+  fromPhone        String              @map("from_phone") // E.164
+  customerId       String?             @map("customer_id")
+  customer         Customer?           @relation(fields: [customerId], references: [id])
+  messageText      String              @map("message_text")
+  matchedProductId String?             @map("matched_product_id")
+  matchedProduct   Product?            @relation(fields: [matchedProductId], references: [id])
+  status           WhatsAppQueryStatus @default(RECEIVED)
+  responseText     String?             @map("response_text")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  respondedAt      DateTime?           @map("responded_at")
 
   @@index([fromPhone, createdAt])
   @@map("whatsapp_queries")

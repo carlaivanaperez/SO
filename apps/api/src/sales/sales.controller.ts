@@ -1,17 +1,21 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { SalesService } from "./sales.service";
 import { ZodValidationPipe } from "../common/zod-validation.pipe";
-import { createSaleSchema, type CreateSaleInput } from "@ferrestock/shared";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { CurrentUser } from "../auth/current-user.decorator";
+import { createSaleSchema, type CreateSaleInput, type JwtPayload } from "@ferrestock/shared";
 
 @Controller("sales")
+@UseGuards(JwtAuthGuard)
 export class SalesController {
   constructor(private readonly sales: SalesService) {}
 
   @Post()
-  create(@Body(new ZodValidationPipe(createSaleSchema)) dto: CreateSaleInput) {
-    // TODO: reemplazar por el userId del JWT una vez integrado AuthGuard.
-    const userId = "dev-user";
-    return this.sales.create(dto, userId);
+  create(
+    @Body(new ZodValidationPipe(createSaleSchema)) dto: CreateSaleInput,
+    @CurrentUser() user: JwtPayload
+  ) {
+    return this.sales.create(dto, user.sub);
   }
 
   @Get(":id")

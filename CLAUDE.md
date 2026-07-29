@@ -20,9 +20,9 @@ dominio (una ferretería) lo son; el **código y los identificadores van en ingl
 Se entrega como **app web** (panel de administración) y **app móvil**
 (Android/iOS), ambas contra la misma API.
 
-> Estado actual: **andamiaje (scaffold) inicial**. La arquitectura, el modelo de
-> datos y los flujos centrales están definidos y son coherentes entre sí, pero
-> faltan piezas marcadas con `TODO` (auth real, UI completa, tests). Ver §8.
+> Estado actual: **andamiaje (scaffold) en progreso**. La arquitectura, el modelo
+> de datos, la **autenticación (JWT + roles)** y los flujos centrales están
+> definidos y son coherentes. Falta UI completa, tests y deploy. Ver §9.
 
 ---
 
@@ -149,7 +149,25 @@ Los secretos de WhatsApp van **solo en `.env`** (nunca commiteados). Ver `.env.e
 
 ---
 
-## 7. Convenciones
+## 7. Autenticación y roles (`apps/api/src/auth/`)
+
+- **Login**: `POST /api/auth/login` (email + password) → devuelve `{ token, user }`.
+  El password se verifica con **argon2**.
+- **JWT**: firmado con `JWT_SECRET`, expira según `JWT_EXPIRES_IN` (7 días por
+  defecto). El payload es `{ sub, email, role }`.
+- **Guards**: `JwtAuthGuard` valida el `Authorization: Bearer <token>` y adjunta
+  el usuario a `request.user`. `RolesGuard` + el decorador `@Roles(...)` restringen
+  por rol. El decorador `@CurrentUser()` inyecta el usuario en el handler.
+- **Roles**: `ADMIN` (todo), `MANAGER` (catálogo, precios, stock, reportes),
+  `CASHIER` (solo ventas). Ej: crear/editar productos requiere `ADMIN`/`MANAGER`;
+  registrar staff (`POST /api/auth/register`) requiere `ADMIN`.
+- El endpoint de webhook de WhatsApp **no** usa estos guards: se protege con la
+  firma de Meta (ver §6).
+
+Para consumir la API protegida desde web/mobile: guardar el `token` del login y
+mandarlo en `Authorization: Bearer <token>` en cada request.
+
+## 8. Convenciones
 
 - **Idioma:** código, identificadores, tablas y tipos en **inglés**; comentarios,
   mensajes de UI y textos de cara al cliente en **español (es-AR)**.
@@ -165,27 +183,27 @@ Los secretos de WhatsApp van **solo en `.env`** (nunca commiteados). Ver `.env.e
 
 ---
 
-## 8. Estado y próximos pasos (TODO)
+## 9. Estado y próximos pasos (TODO)
 
-Lo que **falta** y conviene abordar en este orden:
+Ya hecho: modelo de datos, **auth JWT + roles**, migración inicial
+(`packages/db/prisma/migrations/`), flujos de ventas y stock, bot de WhatsApp.
 
-1. **Auth real**: módulo de autenticación con JWT (`@nestjs/jwt`) + `argon2` para
-   hashear (el seed usa un hash de dev). Guards por rol. Reemplazar el
-   `userId = "dev-user"` en `sales.controller.ts`.
-2. **Migraciones**: no hay migración inicial commiteada aún → correr `pnpm db:migrate` para generarla.
-3. **UI web/mobile**: hoy solo hay listado de catálogo. Falta POS, alta/edición de
-   productos, ajustes de stock, reportes.
-4. **Tests**: no hay tests todavía. Priorizar la lógica de `sales.service` (cálculo
+Lo que **falta**, en orden sugerido:
+
+1. **UI web/mobile**: hoy solo hay listado de catálogo. Falta pantalla de login,
+   POS (punto de venta), alta/edición de productos, ajustes de stock y reportes.
+2. **Tests**: no hay tests todavía. Priorizar la lógica de `sales.service` (cálculo
    de totales, descuento de stock) y el matching de WhatsApp.
-5. **Matching de productos en WhatsApp**: hoy es `contains` simple; mejorar con
+3. **Matching de productos en WhatsApp**: hoy es `contains` simple; mejorar con
    full-text search de Postgres o similar.
-6. **Deploy/CI**: sin pipeline aún.
+4. **Clientes y cuentas corrientes**: CRUD de clientes y ventas a cuenta.
+5. **Deploy/CI**: sin pipeline aún.
 
 Cuando completes un punto, actualizá esta sección y las partes relevantes del archivo.
 
 ---
 
-## 9. Flujo de trabajo con Git
+## 10. Flujo de trabajo con Git
 
 - Rama de desarrollo designada: **`claude/claude-md-docs-pn5uln`**. Desarrollá y pusheá ahí.
 - Commits descriptivos. No pushear a otra rama sin permiso explícito.
@@ -194,7 +212,7 @@ Cuando completes un punto, actualizá esta sección y las partes relevantes del 
 
 ---
 
-## 10. Mantener este archivo
+## 11. Mantener este archivo
 
 Si cambiás la arquitectura, agregás un workspace, cambiás comandos, o modificás
 el modelo de datos o convenciones: **actualizá `CLAUDE.md` en el mismo cambio**.

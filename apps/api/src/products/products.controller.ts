@@ -1,6 +1,19 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
 import { ProductsService } from "./products.service";
 import { ZodValidationPipe } from "../common/zod-validation.pipe";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { RolesGuard } from "../auth/roles.guard";
+import { Roles } from "../auth/roles.decorator";
+import { CurrentUser } from "../auth/current-user.decorator";
 import {
   createProductSchema,
   updateProductSchema,
@@ -10,12 +23,15 @@ import {
   type UpdateProductInput,
   type StockAdjustmentInput,
   type Pagination,
+  type JwtPayload,
 } from "@ferrestock/shared";
 
 @Controller("products")
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ProductsController {
   constructor(private readonly products: ProductsService) {}
 
+  // Lectura: cualquier usuario autenticado (incluye cajeros).
   @Get()
   list(@Query(new ZodValidationPipe(paginationSchema)) query: Pagination) {
     return this.products.list(query);
@@ -26,12 +42,15 @@ export class ProductsController {
     return this.products.findOne(id);
   }
 
+  // Alta/edición de catálogo y precios: solo ADMIN y MANAGER.
   @Post()
+  @Roles("ADMIN", "MANAGER")
   create(@Body(new ZodValidationPipe(createProductSchema)) dto: CreateProductInput) {
     return this.products.create(dto);
   }
 
   @Patch(":id")
+  @Roles("ADMIN", "MANAGER")
   update(
     @Param("id") id: string,
     @Body(new ZodValidationPipe(updateProductSchema)) dto: UpdateProductInput
@@ -40,10 +59,12 @@ export class ProductsController {
   }
 
   @Post(":id/stock")
+  @Roles("ADMIN", "MANAGER")
   adjustStock(
     @Param("id") id: string,
-    @Body(new ZodValidationPipe(stockAdjustmentSchema)) dto: StockAdjustmentInput
+    @Body(new ZodValidationPipe(stockAdjustmentSchema)) dto: StockAdjustmentInput,
+    @CurrentUser() user: JwtPayload
   ) {
-    return this.products.adjustStock(id, dto);
+    return this.products.adjustStock(id, dto, user.sub);
   }
 }

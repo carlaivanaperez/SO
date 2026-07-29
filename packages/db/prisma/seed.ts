@@ -1,13 +1,12 @@
 // Datos de ejemplo para desarrollo. Ejecutar con: pnpm db:seed
 import { PrismaClient, UserRole, ProductUnit } from "@prisma/client";
-import { createHash } from "node:crypto";
+import * as argon2 from "argon2";
 
 const prisma = new PrismaClient();
 
-// Placeholder simple; la API usa bcrypt/argon2 de verdad para hashear.
-const devHash = (pw: string) => createHash("sha256").update(pw).digest("hex");
-
 async function main() {
+  const adminHash = await argon2.hash("admin1234");
+
   const warehouse = await prisma.warehouse.upsert({
     where: { id: "wh_default" },
     update: {},
@@ -21,7 +20,7 @@ async function main() {
       email: "admin@ferreteria.local",
       name: "Administrador",
       role: UserRole.ADMIN,
-      passwordHash: devHash("admin1234"),
+      passwordHash: adminHash,
     },
   });
 

@@ -202,8 +202,11 @@ Lo que **falta**, en orden sugerido:
 
 1. **Reportes web** (ventas por período, stock bajo mínimo) y la app **mobile**
    completa (hoy solo lista el catálogo).
-2. **Tests**: no hay tests todavía. Priorizar la lógica de `sales.service` (cálculo
-   de totales, descuento de stock) y el matching de WhatsApp.
+2. **Tests**: hay tests unitarios (Jest) de `sales.service` (totales/IVA,
+   congelado de precio, descuento de stock) y `products.service` (ajuste de
+   stock, historial de precios). Falta cubrir el **matching de WhatsApp** y sumar
+   tests de integración/e2e. Los tests mockean Prisma (no requieren base). Se
+   corren con `pnpm test`.
 3. **Matching de productos en WhatsApp**: hoy es `contains` simple; mejorar con
    full-text search de Postgres o similar.
 4. **Clientes y cuentas corrientes**: CRUD de clientes y ventas a cuenta.
@@ -211,7 +214,8 @@ Lo que **falta**, en orden sugerido:
 
 Cuando completes un punto, actualizá esta sección y las partes relevantes del archivo.
 
-**Estado de verificación:** `pnpm typecheck` pasa en los 5 paquetes y
+**Estado de verificación:** `pnpm typecheck` pasa en los 5 paquetes,
+`pnpm test` corre 10 tests unitarios en verde y
 `pnpm --filter @ferrestock/web build` compila las 7 rutas. Todavía **no** se
 levantó contra una base real (requiere Docker/Postgres, que no estaba disponible
 en el entorno de desarrollo usado). Para verlo funcionando: seguí §3.

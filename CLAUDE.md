@@ -186,12 +186,19 @@ mandarlo en `Authorization: Bearer <token>` en cada request.
 ## 9. Estado y próximos pasos (TODO)
 
 Ya hecho: modelo de datos, **auth JWT + roles**, migración inicial
-(`packages/db/prisma/migrations/`), flujos de ventas y stock, bot de WhatsApp.
+(`packages/db/prisma/migrations/`), flujos de ventas y stock, bot de WhatsApp,
+y en la **web**: login, dashboard de catálogo protegido y **POS** (punto de venta).
+
+**UI web** (`apps/web/src/`): `lib/auth.ts` guarda el token JWT en `localStorage`;
+`lib/api.ts` es el cliente HTTP que adjunta `Authorization: Bearer`. Rutas:
+`/login`, `/` (catálogo + buscador), `/pos` (busca productos, arma carrito y
+registra la venta). Todas las páginas son client components y redirigen a `/login`
+ante un `401`.
 
 Lo que **falta**, en orden sugerido:
 
-1. **UI web/mobile**: hoy solo hay listado de catálogo. Falta pantalla de login,
-   POS (punto de venta), alta/edición de productos, ajustes de stock y reportes.
+1. **UI web/mobile**: falta alta/edición de productos, ajustes de stock, reportes
+   en la web; y toda la app **mobile** (hoy solo lista el catálogo).
 2. **Tests**: no hay tests todavía. Priorizar la lógica de `sales.service` (cálculo
    de totales, descuento de stock) y el matching de WhatsApp.
 3. **Matching de productos en WhatsApp**: hoy es `contains` simple; mejorar con

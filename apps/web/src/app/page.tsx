@@ -1,24 +1,92 @@
-import { fetchProducts } from "@/lib/api";
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { fetchProducts, ApiError, type ProductRow } from "@/lib/api";
+import { getToken, getUser, clearSession, type SessionUser } from "@/lib/auth";
 
-// Server Component: lista el catálogo con stock. Punto de partida del panel.
-export default async function DashboardPage() {
-  let products: Awaited<ReturnType<typeof fetchProducts>>["items"] = [];
-  let error: string | null = null;
+export default function DashboardPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<SessionUser | null>(null);
+  const [products, setProducts] = useState<ProductRow[]>([]);
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  try {
-    products = (await fetchProducts()).items;
-  } catch (e) {
-    error = e instanceof Error ? e.message : "Error desconocido";
+  // Sin token → al login.
+  useEffect(() => {
+    if (!getToken()) {
+      router.replace("/login");
+      return;
+    }
+    setUser(getUser());
+  }, [router]);
+
+  // Carga (y recarga por búsqueda, con debounce simple).
+  useEffect(() => {
+    if (!getToken()) return;
+    const t = setTimeout(() => {
+      fetchProducts(search)
+        .then((res) => {
+          setProducts(res.items);
+          setError(null);
+        })
+        .catch((e) => {
+          if (e instanceof ApiError && e.status === 401) {
+            clearSession();
+            router.replace("/login");
+          } else {
+            setError(e instanceof Error ? e.message : "Error al cargar el catálogo");
+          }
+        });
+    }, 250);
+    return () => clearTimeout(t);
+  }, [search, router]);
+
+  function logout() {
+    clearSession();
+    router.replace("/login");
   }
 
   return (
-    <main style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
-      <h1>FerreStock 🛠️</h1>
-      <p>Panel de administración — catálogo y stock</p>
+    <main style={{ padding: 24, maxWidth: 960, margin: "0 auto" }}>
+      <header
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <h1 style={{ margin: 0 }}>FerreStock 🛠️</h1>
+        <nav style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Link href="/pos" style={{ fontWeight: 600 }}>
+            🧾 Punto de venta
+          </Link>
+          {user && <span style={{ color: "#666" }}>{user.name}</span>}
+          <button onClick={logout} style={{ cursor: "pointer" }}>
+            Salir
+          </button>
+        </nav>
+      </header>
 
-      {error && <p style={{ color: "crimson" }}>⚠️ {error} (¿está corriendo la API?)</p>}
+      <p style={{ color: "#666" }}>Catálogo y stock</p>
 
-      <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16 }}>
+      <input
+        placeholder="Buscar por nombre, SKU o código de barras…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{
+          width: "100%",
+          padding: "8px 10px",
+          border: "1px solid #ccc",
+          borderRadius: 6,
+          marginBottom: 16,
+        }}
+      />
+
+      {error && <p style={{ color: "crimson" }}>⚠️ {error}</p>}
+
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ textAlign: "left", borderBottom: "2px solid #ddd" }}>
             <th>SKU</th>
@@ -39,6 +107,13 @@ export default async function DashboardPage() {
               </tr>
             );
           })}
+          {products.length === 0 && !error && (
+            <tr>
+              <td colSpan={4} style={{ padding: 16, color: "#888" }}>
+                No hay productos para mostrar.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </main>

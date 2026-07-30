@@ -1,6 +1,11 @@
 // Datos de ejemplo para desarrollo. Ejecutar con: pnpm db:seed
+import { config } from "dotenv";
+import { resolve } from "path";
 import { PrismaClient, UserRole, ProductUnit } from "@prisma/client";
 import * as argon2 from "argon2";
+
+// El .env vive en la raíz del monorepo; el seed corre desde packages/db.
+config({ path: resolve(process.cwd(), "../../.env") });
 
 const prisma = new PrismaClient();
 

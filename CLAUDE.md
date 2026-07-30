@@ -83,7 +83,15 @@ Usuario seed: `admin@ferreteria.local` / `admin1234` (solo dev).
 
 **Base de datos:** Prisma usa `DATABASE_URL` (conexión *pooled*, para la app) y
 `DIRECT_URL` (conexión directa, para migraciones) — ver `datasource db` en el
-schema. En local con Docker, ambas apuntan a la misma URL.
+schema. En local con Docker, ambas apuntan a la misma URL. El `.env` vive en la
+**raíz**; la API (`apps/api/src/load-env.ts`) y el seed lo cargan solos con
+`dotenv`, así que no hace falta copiarlo a cada paquete.
+
+**Paquetes internos:** `@ferrestock/shared` y `@ferrestock/db` se **compilan a
+JS** (`dist/`, `main` apunta ahí) porque la API los consume en runtime. Por eso
+las tasks `dev`/`typecheck`/`test` dependen de `^build` en `turbo.json`: Turbo
+los compila antes. Si corrés un workspace suelto con `pnpm --filter`, buildeá
+`shared`/`db` primero.
 
 **Postgres en la nube (Neon):** alternativa gratis a Docker, sin depender de una
 PC. En Neon: crear proyecto → copiar las dos cadenas ("Pooled connection" →
@@ -101,6 +109,7 @@ Todos desde la raíz (Turborepo orquesta los workspaces):
 | Comando | Qué hace |
 |---|---|
 | `pnpm dev` | Levanta api + web + mobile en modo watch |
+| `pnpm dev:app` | Levanta solo api + web (compila `shared`/`db` antes). Ideal para el panel |
 | `pnpm build` | Compila todos los paquetes respetando el orden de dependencias |
 | `pnpm typecheck` | Chequeo de tipos en todo el monorepo |
 | `pnpm lint` | Linting |

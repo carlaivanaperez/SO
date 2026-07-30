@@ -1,3 +1,4 @@
+import "./load-env"; // Debe ir primero: carga el .env antes que el resto.
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { json } from "express";

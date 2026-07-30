@@ -12,7 +12,10 @@
     // el error TS2742 al inferir tipos de Prisma a través de pnpm.
     "declaration": false,
     "declarationMap": false,
-    "isolatedModules": true
+    "isolatedModules": true,
+    // App final: compilación completa siempre (evita builds parciales por
+    // caché cuando nest borra dist pero deja el .tsbuildinfo).
+    "incremental": false
   },
   "include": ["src/**/*.ts"]
 }

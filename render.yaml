@@ -1,0 +1,23 @@
+# Blueprint de Render para la API de FerreStock.
+# En Render: New → Blueprint → conectar este repo. Render lee este archivo,
+# crea el servicio y pide las variables marcadas como sync:false.
+services:
+  - type: web
+    name: ferrestock-api
+    runtime: node
+    plan: free
+    # Compila shared + db + api (turbo respeta el orden de dependencias).
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=@ferrestock/api
+    startCommand: node apps/api/dist/main.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL # cadena "pooled" de Neon
+        sync: false
+      - key: DIRECT_URL # cadena directa de Neon
+        sync: false
+      - key: JWT_SECRET # secreto para firmar los tokens (Render lo genera)
+        generateValue: true
+      # WEB_ORIGIN es opcional: si se deja vacío, la API acepta cualquier origen.
+      # Para restringir, poné acá la URL de la web en Vercel.
+      - key: WEB_ORIGIN
+        sync: false

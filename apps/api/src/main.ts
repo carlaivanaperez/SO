@@ -17,13 +17,18 @@ async function bootstrap() {
     })
   );
 
-  app.enableCors({ origin: process.env.WEB_ORIGIN?.split(",") ?? "*" });
+  // WEB_ORIGIN = dominios permitidos separados por coma; sin valor => todos.
+  app.enableCors({
+    origin: process.env.WEB_ORIGIN ? process.env.WEB_ORIGIN.split(",") : "*",
+  });
   app.setGlobalPrefix("api");
 
-  const port = Number(process.env.API_PORT ?? 3001);
-  await app.listen(port);
+  // PORT lo inyecta el hosting (Render); en local usamos API_PORT o 3001.
+  // 0.0.0.0 para que el hosting pueda enrutar el tráfico externo.
+  const port = Number(process.env.PORT ?? process.env.API_PORT ?? 3001);
+  await app.listen(port, "0.0.0.0");
   // eslint-disable-next-line no-console
-  console.log(`API escuchando en http://localhost:${port}/api`);
+  console.log(`API escuchando en el puerto ${port} (prefijo /api)`);
 }
 
 void bootstrap();

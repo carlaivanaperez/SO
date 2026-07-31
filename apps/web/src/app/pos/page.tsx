@@ -113,7 +113,7 @@ export default function PosPage() {
           </p>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 8 }}>
+        <div className="grid-2" style={{ marginTop: 8 }}>
           {/* Buscador */}
           <section className="card">
             <h2 style={{ fontSize: 16 }}>Agregar producto</h2>

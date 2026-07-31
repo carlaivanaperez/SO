@@ -184,6 +184,34 @@ h3 {
   flex-wrap: wrap;
 }
 
+/* ── Grillas responsive ──────────────────────────────────── */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+.table-wrap {
+  overflow-x: auto;
+}
+
+@media (max-width: 720px) {
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+  .container {
+    padding: 16px;
+  }
+  .brand .brand-text {
+    font-size: 15px;
+  }
+}
+
 /* ── Formularios ─────────────────────────────────────────── */
 .field {
   display: grid;

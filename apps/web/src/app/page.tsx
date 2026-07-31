@@ -71,7 +71,7 @@ export default function DashboardPage() {
 
         {error && <p className="alert alert-error">⚠️ {error}</p>}
 
-        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+        <div className="card table-wrap" style={{ padding: 0 }}>
           <table className="table">
             <thead>
               <tr>

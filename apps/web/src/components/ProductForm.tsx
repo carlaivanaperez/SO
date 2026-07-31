@@ -68,7 +68,7 @@ export function ProductForm({ initial }: { initial: ProductDetail | null }) {
 
   return (
     <form onSubmit={onSubmit} className="card">
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="grid-2">
         <Field label="SKU (código interno)">
           <input className="input" value={sku} onChange={(e) => setSku(e.target.value)} required />
         </Field>
@@ -81,7 +81,7 @@ export function ProductForm({ initial }: { initial: ProductDetail | null }) {
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
       </Field>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="grid-2">
         <Field label="Marca">
           <input className="input" value={brand} onChange={(e) => setBrand(e.target.value)} />
         </Field>
@@ -109,7 +109,7 @@ export function ProductForm({ initial }: { initial: ProductDetail | null }) {
         />
       </Field>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+      <div className="grid-3">
         <Field label="Precio de costo">
           <input
             className="input"

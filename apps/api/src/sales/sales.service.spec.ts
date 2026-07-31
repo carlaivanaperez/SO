@@ -14,7 +14,7 @@ function setup(opts: { products: ReturnType<typeof product>[]; warehouse?: { id:
   const tx = {
     sale: { create: jest.fn().mockResolvedValue({ id: "sale_1", items: [] }) },
     stockMovement: { create: jest.fn().mockResolvedValue({}) },
-    stockItem: { update: jest.fn().mockResolvedValue({}) },
+    stockItem: { upsert: jest.fn().mockResolvedValue({}) },
   };
   const prisma = {
     product: { findMany: jest.fn().mockResolvedValue(opts.products) },
@@ -85,9 +85,9 @@ describe("SalesService.create", () => {
     expect(mov.quantity.toString()).toBe("-3"); // egreso
     expect(mov.warehouseId).toBe("wh_default");
 
-    expect(tx.stockItem.update).toHaveBeenCalledTimes(1);
-    const upd = tx.stockItem.update.mock.calls[0][0];
-    expect(upd.data.quantity).toEqual({ decrement: 3 });
+    expect(tx.stockItem.upsert).toHaveBeenCalledTimes(1);
+    const upd = tx.stockItem.upsert.mock.calls[0][0];
+    expect(upd.update.quantity).toEqual({ decrement: 3 });
   });
 
   it("lanza NotFoundException si un producto del carrito no existe", async () => {

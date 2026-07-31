@@ -79,14 +79,21 @@ export class SalesService {
             userId,
           },
         });
-        await tx.stockItem.update({
+        // upsert (no update): si el producto aún no tenía registro de stock en
+        // el depósito, lo crea (en negativo) en vez de reventar la venta.
+        await tx.stockItem.upsert({
           where: {
             productId_warehouseId: {
               productId: item.productId,
               warehouseId: defaultWarehouse.id,
             },
           },
-          data: { quantity: { decrement: item.quantity } },
+          create: {
+            productId: item.productId,
+            warehouseId: defaultWarehouse.id,
+            quantity: new Prisma.Decimal(item.quantity).negated(),
+          },
+          update: { quantity: { decrement: item.quantity } },
         });
       }
 

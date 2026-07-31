@@ -41,6 +41,18 @@ export default function DashboardPage() {
     return () => clearTimeout(t);
   }, [search, router]);
 
+  // Refresca el catálogo al volver a la pestaña (ej. tras registrar una venta).
+  useEffect(() => {
+    function onFocus() {
+      if (!getToken()) return;
+      fetchProducts(search)
+        .then((res) => setProducts(res.items))
+        .catch(() => {});
+    }
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [search]);
+
   const manage = canManage(user);
 
   return (

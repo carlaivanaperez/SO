@@ -4,7 +4,9 @@
     "rootDir": ".",
     "outDir": "dist",
     "module": "CommonJS",
-    "moduleResolution": "Node"
+    "moduleResolution": "Node",
+    "composite": false,
+    "incremental": false
   },
   "include": ["src/**/*.ts", "prisma/**/*.ts"]
 }

@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { AppHeader } from "@/components/AppHeader";
 import {
   fetchProduct,
   fetchWarehouses,
@@ -10,7 +11,7 @@ import {
   type ProductDetail,
   type Warehouse,
 } from "@/lib/api";
-import { getToken, getUser, canManage, clearSession } from "@/lib/auth";
+import { getToken, getUser, canManage, clearSession, type SessionUser } from "@/lib/auth";
 import type { StockAdjustmentInput } from "@ferrestock/shared";
 
 type MovementType = StockAdjustmentInput["type"];
@@ -25,6 +26,7 @@ const TYPES: { value: MovementType; label: string }[] = [
 export default function StockPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [warehouseId, setWarehouseId] = useState("");
@@ -40,10 +42,12 @@ export default function StockPage() {
       router.replace("/login");
       return;
     }
-    if (!canManage(getUser())) {
+    const u = getUser();
+    if (!canManage(u)) {
       router.replace("/");
       return;
     }
+    setUser(u);
     Promise.all([fetchProduct(params.id), fetchWarehouses()])
       .then(([p, whs]) => {
         setProduct(p);
@@ -86,89 +90,76 @@ export default function StockPage() {
   }
 
   return (
-    <main style={{ padding: 24, maxWidth: 560, margin: "0 auto" }}>
-      <Link href="/">← Volver al panel</Link>
-      <h1>Ajustar stock</h1>
-      {product && (
-        <p style={{ color: "#444" }}>
-          <strong>{product.name}</strong> ({product.sku})
-        </p>
-      )}
+    <>
+      <AppHeader user={user} />
+      <main className="container" style={{ maxWidth: 560 }}>
+        <Link href="/">← Volver al panel</Link>
+        <h1 style={{ marginTop: 8 }}>Ajustar stock</h1>
+        {product && (
+          <p className="muted">
+            <strong style={{ color: "var(--text)" }}>{product.name}</strong> ({product.sku})
+          </p>
+        )}
 
-      {ok && (
-        <p style={{ background: "#e7f8ec", border: "1px solid #9fdcb3", padding: 12, borderRadius: 6 }}>
-          ✅ Movimiento registrado.
-        </p>
-      )}
+        {ok && <p className="alert alert-success">✅ Movimiento registrado.</p>}
 
-      <form onSubmit={onSubmit} style={{ display: "grid", gap: 12, marginTop: 8 }}>
-        <label style={{ display: "grid", gap: 4 }}>
-          <span style={{ fontSize: 13, color: "#444" }}>Depósito</span>
-          <select value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)} style={input}>
-            {warehouses.map((w) => (
-              <option key={w.id} value={w.id}>
-                {w.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <form onSubmit={onSubmit} className="card">
+          <div className="field">
+            <span className="label">Depósito</span>
+            <select
+              className="input"
+              value={warehouseId}
+              onChange={(e) => setWarehouseId(e.target.value)}
+            >
+              {warehouses.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <label style={{ display: "grid", gap: 4 }}>
-          <span style={{ fontSize: 13, color: "#444" }}>Tipo de movimiento</span>
-          <select value={type} onChange={(e) => setType(e.target.value as MovementType)} style={input}>
-            {TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-        </label>
+          <div className="field">
+            <span className="label">Tipo de movimiento</span>
+            <select
+              className="input"
+              value={type}
+              onChange={(e) => setType(e.target.value as MovementType)}
+            >
+              {TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <label style={{ display: "grid", gap: 4 }}>
-          <span style={{ fontSize: 13, color: "#444" }}>
-            Cantidad <span style={{ color: "#888" }}>(negativo = egreso)</span>
-          </span>
-          <input
-            type="number"
-            step="0.001"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            required
-            style={input}
-          />
-        </label>
+          <div className="field">
+            <span className="label">
+              Cantidad <span className="muted">(negativo = egreso)</span>
+            </span>
+            <input
+              className="input"
+              type="number"
+              step="0.001"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              required
+            />
+          </div>
 
-        <label style={{ display: "grid", gap: 4 }}>
-          <span style={{ fontSize: 13, color: "#444" }}>Motivo (opcional)</span>
-          <input value={reason} onChange={(e) => setReason(e.target.value)} style={input} />
-        </label>
+          <div className="field">
+            <span className="label">Motivo (opcional)</span>
+            <input className="input" value={reason} onChange={(e) => setReason(e.target.value)} />
+          </div>
 
-        {error && <p style={{ color: "crimson", margin: 0 }}>⚠️ {error}</p>}
+          {error && <p className="alert alert-error">⚠️ {error}</p>}
 
-        <button type="submit" disabled={saving || !warehouseId} style={button}>
-          {saving ? "Registrando…" : "Registrar movimiento"}
-        </button>
-      </form>
-    </main>
+          <button type="submit" disabled={saving || !warehouseId} className="btn btn-success">
+            {saving ? "Registrando…" : "Registrar movimiento"}
+          </button>
+        </form>
+      </main>
+    </>
   );
 }
-
-const input: CSSProperties = {
-  padding: "8px 10px",
-  border: "1px solid #ccc",
-  borderRadius: 6,
-  fontSize: 14,
-  width: "100%",
-  boxSizing: "border-box",
-};
-
-const button: CSSProperties = {
-  padding: "10px 14px",
-  border: "none",
-  borderRadius: 6,
-  background: "#1a7f37",
-  color: "white",
-  fontSize: 15,
-  cursor: "pointer",
-  justifySelf: "start",
-};

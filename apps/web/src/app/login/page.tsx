@@ -1,5 +1,5 @@
 "use client";
-import { useState, type CSSProperties, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/api";
 import { saveSession } from "@/lib/auth";
@@ -27,55 +27,48 @@ export default function LoginPage() {
   }
 
   return (
-    <main style={{ maxWidth: 360, margin: "10vh auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 4 }}>FerreStock 🛠️</h1>
-      <p style={{ color: "#666", marginTop: 0 }}>Ingresá para acceder al panel</p>
+    <main className="auth-wrap">
+      <div className="auth-card">
+        <img
+          src="/logo.png"
+          alt="El Almacén del Ferretero"
+          className="logo"
+          onError={(e) => (e.currentTarget.style.display = "none")}
+        />
+        <h1 style={{ marginBottom: 2 }}>El Almacén del Ferretero</h1>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Ingresá para acceder al panel
+        </p>
 
-      <form onSubmit={onSubmit} style={{ display: "grid", gap: 12, marginTop: 24 }}>
-        <label style={{ display: "grid", gap: 4 }}>
-          <span>Email</span>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={inputStyle}
-          />
-        </label>
-        <label style={{ display: "grid", gap: 4 }}>
-          <span>Contraseña</span>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={inputStyle}
-          />
-        </label>
+        <form onSubmit={onSubmit} style={{ textAlign: "left", marginTop: 20 }}>
+          <div className="field">
+            <span className="label">Email</span>
+            <input
+              className="input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="field">
+            <span className="label">Contraseña</span>
+            <input
+              className="input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
-        {error && <p style={{ color: "crimson", margin: 0 }}>⚠️ {error}</p>}
+          {error && <p className="alert alert-error">⚠️ {error}</p>}
 
-        <button type="submit" disabled={loading} style={buttonStyle}>
-          {loading ? "Ingresando…" : "Ingresar"}
-        </button>
-      </form>
+          <button type="submit" disabled={loading} className="btn btn-primary btn-block">
+            {loading ? "Ingresando…" : "Ingresar"}
+          </button>
+        </form>
+      </div>
     </main>
   );
 }
-
-const inputStyle: CSSProperties = {
-  padding: "8px 10px",
-  border: "1px solid #ccc",
-  borderRadius: 6,
-  fontSize: 14,
-};
-
-const buttonStyle: CSSProperties = {
-  padding: "10px 14px",
-  border: "none",
-  borderRadius: 6,
-  background: "#1a56db",
-  color: "white",
-  fontSize: 15,
-  cursor: "pointer",
-};

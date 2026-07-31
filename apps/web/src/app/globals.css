@@ -1,0 +1,301 @@
+:root {
+  /* Paleta: azul oscuro (navy) + naranja, con amarillo del logo como acento. */
+  --navy-900: #0b1c30;
+  --navy-800: #10263f;
+  --navy-700: #17324f;
+  --navy-600: #22456a;
+  --orange: #f47c20;
+  --orange-600: #e06a12;
+  --amber: #f5b301;
+  --bg: #eef1f5;
+  --card: #ffffff;
+  --text: #16283a;
+  --muted: #6b7a8c;
+  --border: #dce3ea;
+  --danger: #d64545;
+  --success: #1e874b;
+  --success-bg: #e7f7ee;
+  --danger-bg: #fdeaea;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(16, 38, 63, 0.08), 0 4px 16px rgba(16, 38, 63, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--orange-600);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--navy-800);
+  margin: 0 0 8px;
+}
+
+.container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* ── Header con logo ─────────────────────────────────────── */
+.app-header {
+  background: var(--navy-800);
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+.app-header .inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand img {
+  height: 48px;
+  width: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+}
+.brand .brand-text {
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.3px;
+  line-height: 1.1;
+}
+.brand .brand-text small {
+  display: block;
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--amber);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.nav a {
+  color: #dfe7ef;
+  font-weight: 600;
+}
+.nav a:hover {
+  color: #fff;
+  text-decoration: none;
+}
+.nav .user {
+  color: #9fb2c6;
+  font-size: 14px;
+}
+
+/* ── Botones ─────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.12s ease;
+  text-decoration: none;
+}
+.btn:hover {
+  filter: brightness(0.95);
+  text-decoration: none;
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--orange);
+  color: #fff;
+}
+.btn-success {
+  background: var(--success);
+  color: #fff;
+}
+.btn-navy {
+  background: var(--navy-700);
+  color: #fff;
+}
+.btn-ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
+}
+.btn-outline {
+  background: #fff;
+  border-color: var(--border);
+  color: var(--navy-700);
+}
+.btn-block {
+  width: 100%;
+}
+
+/* ── Tarjetas ────────────────────────────────────────────── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Formularios ─────────────────────────────────────────── */
+.field {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy-700);
+}
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  background: #fff;
+  color: var(--text);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(244, 124, 32, 0.15);
+}
+
+/* ── Tablas ──────────────────────────────────────────────── */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.table thead th {
+  background: var(--navy-800);
+  color: #fff;
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.table tbody td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+.table tbody tr:hover {
+  background: #f7f9fb;
+}
+
+/* ── Badges de stock ─────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #e9eef3;
+  color: var(--navy-700);
+}
+.badge-low {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.badge-ok {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+/* ── Alertas ─────────────────────────────────────────────── */
+.alert {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  margin: 0 0 14px;
+  font-size: 14px;
+}
+.alert-error {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid #f3c9c9;
+}
+.alert-success {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid #b9e4cb;
+}
+
+/* ── Login ───────────────────────────────────────────────── */
+.auth-wrap {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, var(--navy-900), var(--navy-700));
+  padding: 24px;
+}
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 32px;
+  text-align: center;
+}
+.auth-card img.logo {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 12px;
+}

@@ -1,5 +1,5 @@
 "use client";
-import { useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createProduct, updateProduct, ApiError, type ProductDetail } from "@/lib/api";
 import { clearSession } from "@/lib/auth";
@@ -36,7 +36,6 @@ export function ProductForm({ initial }: { initial: ProductDetail | null }) {
     e.preventDefault();
     setError(null);
     setSaving(true);
-    // Campos opcionales vacíos → undefined (no mandar "").
     const payload = {
       sku: sku.trim(),
       barcode: barcode.trim() || undefined,
@@ -68,29 +67,29 @@ export function ProductForm({ initial }: { initial: ProductDetail | null }) {
   }
 
   return (
-    <form onSubmit={onSubmit} style={{ display: "grid", gap: 12, marginTop: 16 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+    <form onSubmit={onSubmit} className="card">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <Field label="SKU (código interno)">
-          <input value={sku} onChange={(e) => setSku(e.target.value)} required style={input} />
+          <input className="input" value={sku} onChange={(e) => setSku(e.target.value)} required />
         </Field>
         <Field label="Código de barras">
-          <input value={barcode} onChange={(e) => setBarcode(e.target.value)} style={input} />
+          <input className="input" value={barcode} onChange={(e) => setBarcode(e.target.value)} />
         </Field>
       </div>
 
       <Field label="Nombre">
-        <input value={name} onChange={(e) => setName(e.target.value)} required style={input} />
+        <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
       </Field>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <Field label="Marca">
-          <input value={brand} onChange={(e) => setBrand(e.target.value)} style={input} />
+          <input className="input" value={brand} onChange={(e) => setBrand(e.target.value)} />
         </Field>
         <Field label="Unidad">
           <select
+            className="input"
             value={unit}
             onChange={(e) => setUnit(e.target.value as ProductUnitDTO)}
-            style={input}
           >
             {UNITS.map((u) => (
               <option key={u.value} value={u.value}>
@@ -103,58 +102,58 @@ export function ProductForm({ initial }: { initial: ProductDetail | null }) {
 
       <Field label="Descripción">
         <textarea
+          className="input"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={2}
-          style={input}
         />
       </Field>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
         <Field label="Precio de costo">
           <input
+            className="input"
             type="number"
             step="0.01"
             min="0"
             value={costPrice}
             onChange={(e) => setCostPrice(e.target.value)}
-            style={input}
           />
         </Field>
         <Field label="Precio de venta">
           <input
+            className="input"
             type="number"
             step="0.01"
             min="0"
             value={salePrice}
             onChange={(e) => setSalePrice(e.target.value)}
             required
-            style={input}
           />
         </Field>
         <Field label="IVA %">
           <input
+            className="input"
             type="number"
             step="0.01"
             min="0"
             max="100"
             value={taxRate}
             onChange={(e) => setTaxRate(e.target.value)}
-            style={input}
           />
         </Field>
       </div>
 
       {editing && (
-        <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
           <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
           <span>Producto activo</span>
         </label>
       )}
 
-      {error && <p style={{ color: "crimson", margin: 0 }}>⚠️ {error}</p>}
+      {error && <p className="alert alert-error">⚠️ {error}</p>}
 
-      <button type="submit" disabled={saving} style={button}>
+      <button type="submit" disabled={saving} className="btn btn-primary">
         {saving ? "Guardando…" : editing ? "Guardar cambios" : "Crear producto"}
       </button>
     </form>
@@ -163,29 +162,9 @@ export function ProductForm({ initial }: { initial: ProductDetail | null }) {
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label style={{ display: "grid", gap: 4 }}>
-      <span style={{ fontSize: 13, color: "#444" }}>{label}</span>
+    <label className="field">
+      <span className="label">{label}</span>
       {children}
     </label>
   );
 }
-
-const input: CSSProperties = {
-  padding: "8px 10px",
-  border: "1px solid #ccc",
-  borderRadius: 6,
-  fontSize: 14,
-  width: "100%",
-  boxSizing: "border-box",
-};
-
-const button: CSSProperties = {
-  padding: "10px 14px",
-  border: "none",
-  borderRadius: 6,
-  background: "#1a56db",
-  color: "white",
-  fontSize: 15,
-  cursor: "pointer",
-  justifySelf: "start",
-};

@@ -2,13 +2,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { AppHeader } from "@/components/AppHeader";
 import { ProductForm } from "@/components/ProductForm";
 import { fetchProduct, ApiError, type ProductDetail } from "@/lib/api";
-import { getToken, getUser, canManage, clearSession } from "@/lib/auth";
+import { getToken, getUser, canManage, clearSession, type SessionUser } from "@/lib/auth";
 
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,10 +19,12 @@ export default function EditProductPage() {
       router.replace("/login");
       return;
     }
-    if (!canManage(getUser())) {
+    const u = getUser();
+    if (!canManage(u)) {
       router.replace("/");
       return;
     }
+    setUser(u);
     fetchProduct(params.id)
       .then(setProduct)
       .catch((e) => {
@@ -34,12 +38,15 @@ export default function EditProductPage() {
   }, [params.id, router]);
 
   return (
-    <main style={{ padding: 24, maxWidth: 720, margin: "0 auto" }}>
-      <Link href="/">← Volver al panel</Link>
-      <h1>Editar producto</h1>
-      {error && <p style={{ color: "crimson" }}>⚠️ {error}</p>}
-      {!product && !error && <p style={{ color: "#888" }}>Cargando…</p>}
-      {product && <ProductForm initial={product} />}
-    </main>
+    <>
+      <AppHeader user={user} />
+      <main className="container" style={{ maxWidth: 720 }}>
+        <Link href="/">← Volver al panel</Link>
+        <h1 style={{ marginTop: 8 }}>Editar producto</h1>
+        {error && <p className="alert alert-error">⚠️ {error}</p>}
+        {!product && !error && <p className="muted">Cargando…</p>}
+        {product && <ProductForm initial={product} />}
+      </main>
+    </>
   );
 }

@@ -1,14 +1,15 @@
 import type { ReactNode } from "react";
+import "./globals.css";
 
 export const metadata = {
-  title: "FerreStock — Panel",
-  description: "Gestión de ventas, stock y precios",
+  title: "El Almacén del Ferretero — Gestión",
+  description: "Ventas, stock y precios",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
-      <body style={{ fontFamily: "system-ui, sans-serif", margin: 0 }}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }

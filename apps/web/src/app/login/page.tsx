@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/api";
 import { saveSession } from "@/lib/auth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function LoginPage() {
 
   return (
     <main className="auth-wrap">
+      <ThemeToggle className="auth-toggle" />
       <div className="auth-card">
         <img
           src="/logo.png"

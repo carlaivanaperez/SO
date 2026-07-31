@@ -160,24 +160,68 @@ export default function PosPage() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 8,
-                  padding: "8px 0",
+                  gap: 10,
+                  padding: "10px 0",
                   borderBottom: "1px solid var(--border)",
                 }}
               >
-                <span style={{ flex: 1 }}>{l.product.name}</span>
-                <input
-                  className="input"
-                  type="number"
-                  min={0}
-                  value={l.quantity}
-                  onChange={(e) => setQty(l.product.id, Number(e.target.value))}
-                  style={{ width: 64 }}
-                />
-                <span style={{ width: 90, textAlign: "right", fontWeight: 600 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600 }}>{l.product.name}</div>
+                  <div className="muted" style={{ fontSize: 13 }}>
+                    ${Number(l.product.salePrice).toLocaleString("es-AR")} c/u
+                  </div>
+                </div>
+
+                {/* Controles de cantidad − [n] + */}
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => setQty(l.product.id, l.quantity - 1)}
+                    style={{ width: 34, minHeight: 34, padding: 0, fontSize: 18 }}
+                    aria-label="Restar"
+                  >
+                    −
+                  </button>
+                  <input
+                    className="input"
+                    type="number"
+                    min={0}
+                    value={l.quantity}
+                    onChange={(e) => setQty(l.product.id, Number(e.target.value))}
+                    style={{ width: 54, textAlign: "center", padding: "6px 4px" }}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => setQty(l.product.id, l.quantity + 1)}
+                    style={{ width: 34, minHeight: 34, padding: 0, fontSize: 18 }}
+                    aria-label="Sumar"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <span style={{ width: 92, textAlign: "right", fontWeight: 700 }}>
                   ${(Number(l.product.salePrice) * l.quantity).toLocaleString("es-AR")}
                 </span>
+
+                <button
+                  type="button"
+                  onClick={() => setQty(l.product.id, 0)}
+                  title="Quitar"
+                  aria-label="Quitar"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "var(--danger)",
+                    fontSize: 18,
+                    lineHeight: 1,
+                  }}
+                >
+                  ×
+                </button>
               </div>
             ))}
 
@@ -196,7 +240,7 @@ export default function PosPage() {
               </select>
             </div>
 
-            <p style={{ fontSize: 22, fontWeight: 800, color: "var(--navy-800)" }}>
+            <p style={{ fontSize: 22, fontWeight: 800, color: "var(--text)" }}>
               Total: ${total.toLocaleString("es-AR")}
             </p>
 

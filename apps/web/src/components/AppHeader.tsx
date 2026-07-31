@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { clearSession, type SessionUser } from "@/lib/auth";
+import { ThemeToggle } from "./ThemeToggle";
 
 // Encabezado con el logo del almacén y la navegación principal.
 export function AppHeader({ user }: { user: SessionUser | null }) {
@@ -32,6 +33,7 @@ export function AppHeader({ user }: { user: SessionUser | null }) {
           <Link href="/">Catálogo</Link>
           <Link href="/pos">🧾 Punto de venta</Link>
           {user && <span className="user">{user.name}</span>}
+          <ThemeToggle />
           <button onClick={logout} className="btn btn-ghost">
             Salir
           </button>

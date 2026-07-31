@@ -19,7 +19,7 @@ export type ProductRow = {
   sku: string;
   name: string;
   salePrice: string;
-  stockItems: { quantity: string }[];
+  stockItems: { quantity: string; minQuantity: string }[];
 };
 
 export type SaleResult = {

@@ -97,6 +97,10 @@ export default function DashboardPage() {
             <tbody>
               {products.map((p) => {
                 const stock = p.stockItems.reduce((s, i) => s + Number(i.quantity), 0);
+                const minQty = p.stockItems.reduce((s, i) => s + Number(i.minQuantity), 0);
+                // Semáforo: rojo=sin stock, amarillo=bajo el mínimo, verde=ok.
+                const badge =
+                  stock <= 0 ? "badge-low" : stock <= minQty ? "badge-warn" : "badge-ok";
                 return (
                   <tr key={p.id}>
                     <td className="muted">{p.sku}</td>
@@ -105,9 +109,7 @@ export default function DashboardPage() {
                     </td>
                     <td>${Number(p.salePrice).toLocaleString("es-AR")}</td>
                     <td>
-                      <span className={`badge ${stock <= 0 ? "badge-low" : "badge-ok"}`}>
-                        {stock}
-                      </span>
+                      <span className={`badge ${badge}`}>{stock}</span>
                     </td>
                     {manage && (
                       <td style={{ display: "flex", gap: 14 }}>

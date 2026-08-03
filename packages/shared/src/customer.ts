@@ -26,3 +26,10 @@ export const customerPaymentSchema = z.object({
   note: z.string().trim().max(500).optional(),
 });
 export type CustomerPaymentInput = z.infer<typeof customerPaymentSchema>;
+
+// Nota de crédito: crédito a favor del cliente (devolución/ajuste).
+export const creditNoteSchema = z.object({
+  amount: z.coerce.number().positive(),
+  reason: z.string().trim().max(500).optional(),
+});
+export type CreditNoteInput = z.infer<typeof creditNoteSchema>;

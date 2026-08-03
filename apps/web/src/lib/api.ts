@@ -12,6 +12,7 @@ import type {
   CreateCustomerInput,
   UpdateCustomerInput,
   CustomerPaymentInput,
+  CreditNoteInput,
 } from "@ferrestock/shared";
 import { getToken } from "./auth";
 
@@ -217,7 +218,7 @@ export type CustomerRow = {
 
 export type CustomerMovement = {
   id: string;
-  type: "SALE" | "PAYMENT";
+  type: "SALE" | "PAYMENT" | "CREDIT";
   date: string;
   amount: string;
   detail: string;
@@ -267,6 +268,13 @@ export async function addCustomerPayment(
   input: CustomerPaymentInput
 ): Promise<unknown> {
   return request(`/api/customers/${id}/payments`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function addCreditNote(id: string, input: CreditNoteInput): Promise<unknown> {
+  return request(`/api/customers/${id}/credit-notes`, {
     method: "POST",
     body: JSON.stringify(input),
   });

@@ -35,6 +35,7 @@ model User {
   sales            Sale[]
   stockMovements   StockMovement[]
   customerPayments CustomerPayment[]
+  creditNotes      CreditNote[]
 
   @@map("users")
 }
@@ -173,8 +174,26 @@ model Customer {
   sales           Sale[]
   whatsappQueries WhatsAppQuery[]
   payments        CustomerPayment[]
+  creditNotes     CreditNote[]
 
   @@map("customers")
+}
+
+// Nota de crédito: crédito a favor del cliente (devolución, ajuste, error en
+// una venta). Baja el saldo de la cuenta corriente igual que un pago, pero es
+// un crédito otorgado por el negocio (no dinero que entró).
+model CreditNote {
+  id         String   @id @default(cuid())
+  customerId String   @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  amount     Decimal  @db.Decimal(12, 2)
+  reason     String?
+  userId     String?  @map("user_id")
+  user       User?    @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([customerId, createdAt])
+  @@map("credit_notes")
 }
 
 // Pagos que un cliente hace a su cuenta corriente. El saldo se calcula:

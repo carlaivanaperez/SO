@@ -9,9 +9,11 @@ import {
   createCustomerSchema,
   updateCustomerSchema,
   customerPaymentSchema,
+  creditNoteSchema,
   type CreateCustomerInput,
   type UpdateCustomerInput,
   type CustomerPaymentInput,
+  type CreditNoteInput,
   type JwtPayload,
 } from "@ferrestock/shared";
 
@@ -55,5 +57,15 @@ export class CustomersController {
     @CurrentUser() user: JwtPayload
   ) {
     return this.customers.addPayment(id, dto, user.sub);
+  }
+
+  @Post(":id/credit-notes")
+  @Roles("ADMIN", "MANAGER")
+  addCreditNote(
+    @Param("id") id: string,
+    @Body(new ZodValidationPipe(creditNoteSchema)) dto: CreditNoteInput,
+    @CurrentUser() user: JwtPayload
+  ) {
+    return this.customers.addCreditNote(id, dto, user.sub);
   }
 }

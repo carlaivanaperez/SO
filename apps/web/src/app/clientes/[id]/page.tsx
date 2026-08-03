@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/AppHeader";
 import {
   fetchCustomer,
   addCustomerPayment,
+  addCreditNote,
   ApiError,
   type CustomerDetail,
 } from "@/lib/api";
@@ -33,6 +34,12 @@ export default function CustomerDetailPage() {
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
+
+  // Formulario de nota de crédito
+  const [cnAmount, setCnAmount] = useState("");
+  const [cnReason, setCnReason] = useState("");
+  const [cnSaving, setCnSaving] = useState(false);
+  const [cnError, setCnError] = useState<string | null>(null);
 
   const handleErr = useCallback(
     (e: unknown, setter: (m: string) => void) => {
@@ -81,6 +88,25 @@ export default function CustomerDetailPage() {
     }
   }
 
+  async function registerCreditNote(e: FormEvent) {
+    e.preventDefault();
+    setCnError(null);
+    setCnSaving(true);
+    try {
+      await addCreditNote(params.id, {
+        amount: Number(cnAmount),
+        reason: cnReason.trim() || undefined,
+      });
+      setCnAmount("");
+      setCnReason("");
+      load();
+    } catch (e) {
+      handleErr(e, setCnError);
+    } finally {
+      setCnSaving(false);
+    }
+  }
+
   const manage = canManage(user);
   const balance = customer ? Number(customer.balance) : 0;
 
@@ -109,16 +135,28 @@ export default function CustomerDetailPage() {
             </div>
 
             {/* Saldo */}
-            <div className="kpi" style={{ borderLeftColor: balance > 0 ? "var(--danger)" : "var(--success)", marginBottom: 16 }}>
+            <div
+              className="kpi"
+              style={{
+                borderLeftColor:
+                  balance > 0 ? "var(--danger)" : balance < 0 ? "var(--warn)" : "var(--success)",
+                marginBottom: 16,
+              }}
+            >
               <div className="kpi-label">Saldo de cuenta corriente</div>
               <div className="kpi-value">
-                {balance > 0 ? `Debe ${money(balance)}` : "Al día ✓"}
+                {balance > 0
+                  ? `Debe ${money(balance)}`
+                  : balance < 0
+                    ? `A favor ${money(-balance)}`
+                    : "Al día ✓"}
               </div>
             </div>
 
             <div className="grid-2">
-              {/* Registrar pago */}
+              {/* Registrar pago + Nota de crédito */}
               {manage && (
+                <div style={{ display: "grid", gap: 16 }}>
                 <section className="card">
                   <h2 style={{ fontSize: 16 }}>Registrar pago</h2>
                   <form onSubmit={registerPayment}>
@@ -154,6 +192,41 @@ export default function CustomerDetailPage() {
                     </button>
                   </form>
                 </section>
+
+                <section className="card">
+                  <h2 style={{ fontSize: 16 }}>Nota de crédito</h2>
+                  <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+                    Crédito a favor del cliente (devolución, ajuste). Baja su saldo.
+                  </p>
+                  <form onSubmit={registerCreditNote}>
+                    <label className="field">
+                      <span className="label">Monto</span>
+                      <input
+                        className="input"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={cnAmount}
+                        onChange={(e) => setCnAmount(e.target.value)}
+                        required
+                      />
+                    </label>
+                    <label className="field">
+                      <span className="label">Motivo (opcional)</span>
+                      <input
+                        className="input"
+                        value={cnReason}
+                        onChange={(e) => setCnReason(e.target.value)}
+                        placeholder="Ej: devolución venta #12"
+                      />
+                    </label>
+                    {cnError && <p className="alert alert-error">⚠️ {cnError}</p>}
+                    <button type="submit" disabled={cnSaving} className="btn btn-outline">
+                      {cnSaving ? "Registrando…" : "Emitir nota de crédito"}
+                    </button>
+                  </form>
+                </section>
+                </div>
               )}
 
               {/* Movimientos */}
@@ -162,22 +235,31 @@ export default function CustomerDetailPage() {
                 {customer.movements.length === 0 && (
                   <p className="muted">Sin movimientos en la cuenta.</p>
                 )}
-                {customer.movements.map((m) => (
-                  <div key={m.id} className="list-row">
-                    <span>
-                      <strong>{m.type === "SALE" ? "🧾 " : "💵 "}</strong>
-                      {m.detail}
-                      <br />
-                      <span className="muted" style={{ fontSize: 12 }}>
-                        {fmtDate(m.date)}
+                {customer.movements.map((m) => {
+                  const icon = m.type === "SALE" ? "🧾" : m.type === "PAYMENT" ? "💵" : "📝";
+                  const color =
+                    m.type === "SALE"
+                      ? "var(--danger)"
+                      : m.type === "PAYMENT"
+                        ? "var(--success)"
+                        : "var(--warn)";
+                  return (
+                    <div key={m.id} className="list-row">
+                      <span>
+                        <strong>{icon} </strong>
+                        {m.detail}
+                        <br />
+                        <span className="muted" style={{ fontSize: 12 }}>
+                          {fmtDate(m.date)}
+                        </span>
                       </span>
-                    </span>
-                    <strong style={{ color: m.type === "SALE" ? "var(--danger)" : "var(--success)" }}>
-                      {m.type === "SALE" ? "+" : "−"}
-                      {money(m.amount)}
-                    </strong>
-                  </div>
-                ))}
+                      <strong style={{ color }}>
+                        {m.type === "SALE" ? "+" : "−"}
+                        {money(m.amount)}
+                      </strong>
+                    </div>
+                  );
+                })}
               </section>
             </div>
           </>

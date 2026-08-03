@@ -4,6 +4,7 @@ import type {
   CreateCustomerInput,
   UpdateCustomerInput,
   CustomerPaymentInput,
+  CreditNoteInput,
 } from "@ferrestock/shared";
 import { Prisma, PaymentMethod, SaleStatus } from "@ferrestock/db";
 
@@ -29,7 +30,7 @@ export class CustomersService {
     const customers = await this.prisma.customer.findMany({ where, orderBy: { name: "asc" } });
     const ids = customers.map((c) => c.id);
 
-    const [charges, payments] = await Promise.all([
+    const [charges, payments, credits] = await Promise.all([
       this.prisma.sale.groupBy({
         by: ["customerId"],
         where: { customerId: { in: ids }, paymentMethod: PaymentMethod.ACCOUNT, status: SaleStatus.COMPLETED },
@@ -40,14 +41,24 @@ export class CustomersService {
         where: { customerId: { in: ids } },
         _sum: { amount: true },
       }),
+      this.prisma.creditNote.groupBy({
+        by: ["customerId"],
+        where: { customerId: { in: ids } },
+        _sum: { amount: true },
+      }),
     ]);
 
     const chargeMap = new Map(charges.map((c) => [c.customerId, c._sum.total ?? ZERO()]));
     const payMap = new Map(payments.map((p) => [p.customerId, p._sum.amount ?? ZERO()]));
+    const creditMap = new Map(credits.map((c) => [c.customerId, c._sum.amount ?? ZERO()]));
 
+    // saldo = cargos − pagos − notas de crédito.
     return customers.map((c) => ({
       ...c,
-      balance: (chargeMap.get(c.id) ?? ZERO()).minus(payMap.get(c.id) ?? ZERO()).toString(),
+      balance: (chargeMap.get(c.id) ?? ZERO())
+        .minus(payMap.get(c.id) ?? ZERO())
+        .minus(creditMap.get(c.id) ?? ZERO())
+        .toString(),
     }));
   }
 
@@ -55,7 +66,7 @@ export class CustomersService {
     const customer = await this.prisma.customer.findUnique({ where: { id } });
     if (!customer) throw new NotFoundException("Cliente no encontrado");
 
-    const [accountSales, payments] = await Promise.all([
+    const [accountSales, payments, creditNotes] = await Promise.all([
       this.prisma.sale.findMany({
         where: { customerId: id, paymentMethod: PaymentMethod.ACCOUNT, status: SaleStatus.COMPLETED },
         select: { id: true, number: true, total: true, createdAt: true },
@@ -65,10 +76,15 @@ export class CustomersService {
         where: { customerId: id },
         orderBy: { createdAt: "desc" },
       }),
+      this.prisma.creditNote.findMany({
+        where: { customerId: id },
+        orderBy: { createdAt: "desc" },
+      }),
     ]);
 
     const charged = accountSales.reduce((s, x) => s.plus(x.total), ZERO());
     const paid = payments.reduce((s, x) => s.plus(x.amount), ZERO());
+    const credited = creditNotes.reduce((s, x) => s.plus(x.amount), ZERO());
 
     const movements = [
       ...accountSales.map((s) => ({
@@ -87,9 +103,25 @@ export class CustomersService {
         detail: p.note ?? "Pago recibido",
         method: p.method as string | null,
       })),
+      ...creditNotes.map((n) => ({
+        id: n.id,
+        type: "CREDIT" as const,
+        date: n.createdAt.toISOString(),
+        amount: n.amount.toString(),
+        detail: n.reason ?? "Nota de crédito",
+        method: null as string | null,
+      })),
     ].sort((a, b) => (a.date < b.date ? 1 : -1));
 
-    return { ...customer, balance: charged.minus(paid).toString(), movements };
+    // saldo = cargos − pagos − notas de crédito.
+    return { ...customer, balance: charged.minus(paid).minus(credited).toString(), movements };
+  }
+
+  async addCreditNote(id: string, dto: CreditNoteInput, userId?: string) {
+    await this.findOneRaw(id);
+    return this.prisma.creditNote.create({
+      data: { customerId: id, amount: dto.amount, reason: dto.reason, userId },
+    });
   }
 
   create(dto: CreateCustomerInput) {

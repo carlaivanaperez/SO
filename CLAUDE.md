@@ -250,7 +250,12 @@ Cuando completes un punto, actualizá esta sección y las partes relevantes del 
 
 ## 12. Deploy (producción)
 
-La app está **publicada**. Tres piezas:
+La app está **publicada** y en uso:
+
+- 🖥️ **Web:** https://elalmacendelferretero.vercel.app (Vercel)
+- ⚙️ **API:** https://ferrestock-api.onrender.com (Render)
+
+Tres piezas:
 
 - **Base de datos:** **Neon** (Postgres serverless). Dos cadenas: `DATABASE_URL`
   (pooled) y `DIRECT_URL` (directa). Ver §3.

@@ -218,8 +218,10 @@ y expone `canManage()` (gate de ADMIN/MANAGER); `lib/api.ts` es el cliente HTTP
 que adjunta `Authorization: Bearer`. `app/globals.css` es el sistema de diseño
 (variables de tema claro/oscuro). Componentes: `AppHeader` (logo + nav + toggle),
 `ThemeToggle`, `ProductForm`. Rutas: `/login`, `/` (dashboard + catálogo), `/pos`
-(carrito + venta), `/products/new`, `/products/[id]/edit` y `/products/[id]/stock`.
-El dashboard consume `GET /api/reports/summary`. Todas las páginas son client
+(carrito + venta), `/ventas` (historial con filtros) + `/ventas/[id]` (detalle +
+imprimir), `/products/new`, `/products/[id]/edit` y `/products/[id]/stock`.
+El dashboard consume `GET /api/reports/summary`; el historial `GET /api/sales`
+(filtros: `from`/`to`/`paymentMethod`/`product`). Todas las páginas son client
 components y redirigen a `/login` ante un `401`. El logo va en
 `apps/web/public/logo.png`.
 
@@ -235,8 +237,8 @@ Lo que **falta**, en orden sugerido:
 3. **Matching de productos en WhatsApp**: hoy es `contains` simple; mejorar con
    full-text search de Postgres o similar.
 4. **Clientes y cuentas corrientes**: CRUD de clientes y ventas a cuenta.
-5. **Historial de ventas** (buscar por fecha/producto/pago) y **comprobante**
-   (imprimir / enviar por WhatsApp).
+5. **Comprobante por WhatsApp** (imprimir ya está en `/ventas/[id]`). El
+   **historial de ventas** con filtros ya está hecho.
 6. **CI**: sin pipeline de tests automáticos aún (el deploy sí está, §12).
 
 Cuando completes un punto, actualizá esta sección y las partes relevantes del archivo.

@@ -1,11 +1,70 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import type { CreateSaleInput } from "@ferrestock/shared";
+import type { CreateSaleInput, SalesQuery } from "@ferrestock/shared";
 import { Prisma, SaleStatus, StockMovementType } from "@ferrestock/db";
+
+// Argentina no usa horario de verano: offset fijo -3h.
+const AR_OFFSET_MS = 3 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Inicio (00:00 hora AR) de una fecha "YYYY-MM-DD", expresado en UTC.
+function arDayStart(dateStr: string): Date {
+  const parts = dateStr.split("-");
+  const y = Number(parts[0]);
+  const m = Number(parts[1]);
+  const d = Number(parts[2]);
+  return new Date(Date.UTC(y, m - 1, d) + AR_OFFSET_MS);
+}
 
 @Injectable()
 export class SalesService {
   constructor(private readonly prisma: PrismaService) {}
+
+  // Historial de ventas con filtros por fecha, medio de pago y producto.
+  async list(q: SalesQuery) {
+    const where: Prisma.SaleWhereInput = { status: SaleStatus.COMPLETED };
+
+    if (q.from || q.to) {
+      where.createdAt = {};
+      if (q.from) where.createdAt.gte = arDayStart(q.from);
+      if (q.to) where.createdAt.lte = new Date(arDayStart(q.to).getTime() + DAY_MS - 1);
+    }
+    if (q.paymentMethod) where.paymentMethod = q.paymentMethod;
+    if (q.product) {
+      where.items = {
+        some: {
+          product: {
+            OR: [
+              { name: { contains: q.product, mode: "insensitive" } },
+              { sku: { contains: q.product, mode: "insensitive" } },
+            ],
+          },
+        },
+      };
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.sale.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (q.page - 1) * q.pageSize,
+        take: q.pageSize,
+        select: {
+          id: true,
+          number: true,
+          total: true,
+          createdAt: true,
+          paymentMethod: true,
+          user: { select: { name: true } },
+          customer: { select: { name: true } },
+          _count: { select: { items: true } },
+        },
+      }),
+      this.prisma.sale.count({ where }),
+    ]);
+
+    return { items, total, page: q.page, pageSize: q.pageSize };
+  }
 
   /**
    * Crea una venta COMPLETED de forma atómica:

@@ -147,3 +147,58 @@ export type DashboardSummary = {
 export async function fetchSummary(): Promise<DashboardSummary> {
   return request<DashboardSummary>("/api/reports/summary");
 }
+
+// ── Historial de ventas ──────────────────────────────────────
+export type SaleListRow = {
+  id: string;
+  number: number;
+  total: string;
+  createdAt: string;
+  paymentMethod: string | null;
+  user: { name: string } | null;
+  customer: { name: string } | null;
+  _count: { items: number };
+};
+
+export type SalesFilters = {
+  from?: string;
+  to?: string;
+  paymentMethod?: string;
+  product?: string;
+  page?: number;
+};
+
+export async function fetchSales(filters: SalesFilters): Promise<Paginated<SaleListRow>> {
+  const qs = new URLSearchParams();
+  if (filters.from) qs.set("from", filters.from);
+  if (filters.to) qs.set("to", filters.to);
+  if (filters.paymentMethod) qs.set("paymentMethod", filters.paymentMethod);
+  if (filters.product) qs.set("product", filters.product);
+  if (filters.page) qs.set("page", String(filters.page));
+  const q = qs.toString();
+  return request<Paginated<SaleListRow>>(`/api/sales${q ? `?${q}` : ""}`);
+}
+
+export type SaleDetail = {
+  id: string;
+  number: number;
+  createdAt: string;
+  subtotal: string;
+  tax: string;
+  discount: string;
+  total: string;
+  paymentMethod: string | null;
+  customer: { name: string } | null;
+  items: {
+    id: string;
+    quantity: string;
+    unitPrice: string;
+    discount: string;
+    total: string;
+    product: { name: string; sku: string };
+  }[];
+};
+
+export async function fetchSale(id: string): Promise<SaleDetail> {
+  return request<SaleDetail>(`/api/sales/${id}`);
+}

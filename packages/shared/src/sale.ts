@@ -17,3 +17,15 @@ export const createSaleSchema = z.object({
   items: z.array(saleItemInputSchema).min(1, "La venta debe tener al menos un ítem"),
 });
 export type CreateSaleInput = z.infer<typeof createSaleSchema>;
+
+// Búsqueda de historial de ventas: fechas (YYYY-MM-DD, hora Argentina),
+// medio de pago y texto de producto (nombre/SKU).
+export const salesQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  paymentMethod: paymentMethodSchema.optional(),
+  product: z.string().trim().min(1).optional(),
+});
+export type SalesQuery = z.infer<typeof salesQuerySchema>;

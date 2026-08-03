@@ -90,6 +90,26 @@ export class SalesService {
     });
     if (!defaultWarehouse) throw new BadRequestException("No hay depósito por defecto configurado");
 
+    // Validar stock disponible: no permitir vender más de lo que hay.
+    const stockItems = await this.prisma.stockItem.findMany({
+      where: { warehouseId: defaultWarehouse.id, productId: { in: productIds } },
+    });
+    const stockMap = new Map(stockItems.map((s) => [s.productId, s.quantity]));
+    const qtyByProduct = new Map<string, number>();
+    for (const it of dto.items) {
+      qtyByProduct.set(it.productId, (qtyByProduct.get(it.productId) ?? 0) + it.quantity);
+    }
+    for (const [pid, qty] of qtyByProduct) {
+      const product = byId.get(pid);
+      if (!product) throw new NotFoundException(`Producto ${pid} no existe`);
+      const available = stockMap.get(pid) ?? new Prisma.Decimal(0);
+      if (available.lessThan(qty)) {
+        throw new BadRequestException(
+          `Stock insuficiente de "${product.name}": disponible ${available.toString()}, pedido ${qty}`
+        );
+      }
+    }
+
     return this.prisma.$transaction(async (tx) => {
       let subtotal = new Prisma.Decimal(0);
       let tax = new Prisma.Decimal(0);

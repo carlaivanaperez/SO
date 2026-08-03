@@ -13,6 +13,7 @@ import type {
   UpdateCustomerInput,
   CustomerPaymentInput,
   CreditNoteInput,
+  CreatePromotionInput,
 } from "@ferrestock/shared";
 import { getToken } from "./auth";
 
@@ -278,4 +279,41 @@ export async function addCreditNote(id: string, input: CreditNoteInput): Promise
     method: "POST",
     body: JSON.stringify(input),
   });
+}
+
+// ── Promociones ──────────────────────────────────────────────
+export type ActivePromotion = {
+  id: string;
+  productId: string;
+  type: "PERCENT" | "TWO_FOR_ONE";
+  percent: string | null;
+  endDate: string;
+};
+
+export type ProductPromotion = {
+  id: string;
+  type: "PERCENT" | "TWO_FOR_ONE";
+  percent: string | null;
+  startDate: string;
+  endDate: string;
+  active: boolean;
+};
+
+export async function fetchActivePromotions(): Promise<ActivePromotion[]> {
+  return request<ActivePromotion[]>("/api/promotions/active");
+}
+
+export async function fetchProductPromotions(productId: string): Promise<ProductPromotion[]> {
+  return request<ProductPromotion[]>(`/api/promotions?productId=${productId}`);
+}
+
+export async function createPromotion(input: CreatePromotionInput): Promise<{ id: string }> {
+  return request<{ id: string }>("/api/promotions", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function deletePromotion(id: string): Promise<unknown> {
+  return request(`/api/promotions/${id}`, { method: "DELETE" });
 }

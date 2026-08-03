@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { ProductForm } from "@/components/ProductForm";
+import { ProductPromotions } from "@/components/ProductPromotions";
 import { fetchProduct, ApiError, type ProductDetail } from "@/lib/api";
 import { getToken, getUser, canManage, clearSession, type SessionUser } from "@/lib/auth";
 
@@ -46,6 +47,7 @@ export default function EditProductPage() {
         {error && <p className="alert alert-error">⚠️ {error}</p>}
         {!product && !error && <p className="muted">Cargando…</p>}
         {product && <ProductForm initial={product} />}
+        {product && <ProductPromotions productId={product.id} />}
       </main>
     </>
   );

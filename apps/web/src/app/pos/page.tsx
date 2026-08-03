@@ -6,13 +6,15 @@ import {
   fetchProducts,
   createSale,
   fetchCustomers,
+  fetchActivePromotions,
   ApiError,
   type ProductRow,
   type SaleResult,
   type CustomerRow,
+  type ActivePromotion,
 } from "@/lib/api";
 import { getToken, getUser, clearSession, type SessionUser } from "@/lib/auth";
-import type { CreateSaleInput } from "@ferrestock/shared";
+import { promoLineDiscount, type CreateSaleInput } from "@ferrestock/shared";
 
 type CartLine = { product: ProductRow; quantity: number };
 type PaymentMethod = CreateSaleInput["paymentMethod"];
@@ -33,6 +35,7 @@ export default function PosPage() {
   const [payment, setPayment] = useState<PaymentMethod>("CASH");
   const [customers, setCustomers] = useState<CustomerRow[]>([]);
   const [customerId, setCustomerId] = useState("");
+  const [promos, setPromos] = useState<Record<string, ActivePromotion>>({});
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<SaleResult | null>(null);
   const [saving, setSaving] = useState(false);
@@ -44,7 +47,21 @@ export default function PosPage() {
     }
     setUser(getUser());
     fetchCustomers().then(setCustomers).catch(() => {});
+    fetchActivePromotions()
+      .then((list) => setPromos(Object.fromEntries(list.map((p) => [p.productId, p]))))
+      .catch(() => {});
   }, [router]);
+
+  // Info de una línea con su promoción aplicada (descuento congelado en la venta).
+  function lineInfo(l: CartLine) {
+    const unit = Number(l.product.salePrice);
+    const gross = unit * l.quantity;
+    const promo = promos[l.product.id];
+    const discount = promo
+      ? promoLineDiscount(promo.type, promo.percent ? Number(promo.percent) : null, unit, l.quantity)
+      : 0;
+    return { unit, gross, discount, total: gross - discount, promo };
+  }
 
   useEffect(() => {
     if (!getToken() || !search) {
@@ -90,8 +107,9 @@ export default function PosPage() {
   }
 
   const total = useMemo(
-    () => cart.reduce((sum, l) => sum + Number(l.product.salePrice) * l.quantity, 0),
-    [cart]
+    () => cart.reduce((sum, l) => sum + lineInfo(l).total, 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [cart, promos]
   );
 
   async function confirm() {
@@ -107,7 +125,11 @@ export default function PosPage() {
         paymentMethod: payment,
         discount: 0,
         customerId: customerId || undefined,
-        items: cart.map((l) => ({ productId: l.product.id, quantity: l.quantity, discount: 0 })),
+        items: cart.map((l) => ({
+          productId: l.product.id,
+          quantity: l.quantity,
+          discount: Math.round(lineInfo(l).discount * 100) / 100,
+        })),
       };
       const sale = await createSale(input);
       setDone(sale);
@@ -173,7 +195,9 @@ export default function PosPage() {
           <section className="card">
             <h2 style={{ fontSize: 16 }}>Venta actual</h2>
             {cart.length === 0 && <p className="muted">Todavía no agregaste productos.</p>}
-            {cart.map((l) => (
+            {cart.map((l) => {
+              const info = lineInfo(l);
+              return (
               <div
                 key={l.product.id}
                 style={{
@@ -187,7 +211,14 @@ export default function PosPage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600 }}>{l.product.name}</div>
                   <div className="muted" style={{ fontSize: 13 }}>
-                    ${Number(l.product.salePrice).toLocaleString("es-AR")} c/u
+                    ${info.unit.toLocaleString("es-AR")} c/u
+                    {info.promo && (
+                      <span className="badge badge-warn" style={{ marginLeft: 6 }}>
+                        {info.promo.type === "PERCENT"
+                          ? `${Number(info.promo.percent ?? 0)}% off`
+                          : "2x1"}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -221,8 +252,16 @@ export default function PosPage() {
                   </button>
                 </div>
 
-                <span style={{ width: 92, textAlign: "right", fontWeight: 700 }}>
-                  ${(Number(l.product.salePrice) * l.quantity).toLocaleString("es-AR")}
+                <span style={{ width: 100, textAlign: "right", fontWeight: 700 }}>
+                  {info.discount > 0 && (
+                    <span
+                      className="muted"
+                      style={{ display: "block", fontSize: 12, textDecoration: "line-through", fontWeight: 400 }}
+                    >
+                      ${info.gross.toLocaleString("es-AR")}
+                    </span>
+                  )}
+                  ${info.total.toLocaleString("es-AR")}
                 </span>
 
                 <button
@@ -242,7 +281,8 @@ export default function PosPage() {
                   ×
                 </button>
               </div>
-            ))}
+              );
+            })}
 
             <div className="field" style={{ marginTop: 16 }}>
               <span className="label">Medio de pago</span>

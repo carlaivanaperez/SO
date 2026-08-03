@@ -86,9 +86,32 @@ model Product {
   saleItems       SaleItem[]
   priceHistory    PriceHistory[]
   whatsappQueries WhatsAppQuery[]
+  promotions      Promotion[]
 
   @@index([name])
   @@map("products")
+}
+
+enum PromotionType {
+  PERCENT // % de descuento
+  TWO_FOR_ONE // 2x1: por cada 2 unidades, pagás 1
+}
+
+// Promoción de un producto con vigencia (fechas). El POS la aplica cuando está
+// activa y dentro del rango, y congela el descuento en la venta.
+model Promotion {
+  id        String        @id @default(cuid())
+  productId String        @map("product_id")
+  product   Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type      PromotionType
+  percent   Decimal?      @db.Decimal(5, 2) // solo para PERCENT (ej: 20.00)
+  startDate DateTime      @map("start_date")
+  endDate   DateTime      @map("end_date")
+  active    Boolean       @default(true)
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  @@index([productId])
+  @@map("promotions")
 }
 
 model PriceHistory {

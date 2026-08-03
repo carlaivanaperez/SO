@@ -10,12 +10,19 @@ function product(id: string, salePrice: string, taxRate = "21") {
 
 // Arma el servicio con un Prisma mockeado. `$transaction` ejecuta el callback
 // con un `tx` espiable para verificar los writes de venta y stock.
-function setup(opts: { products: ReturnType<typeof product>[]; warehouse?: { id: string } | null }) {
+function setup(opts: {
+  products: ReturnType<typeof product>[];
+  warehouse?: { id: string } | null;
+  stock?: { productId: string; quantity: Prisma.Decimal }[];
+}) {
   const tx = {
     sale: { create: jest.fn().mockResolvedValue({ id: "sale_1", items: [] }) },
     stockMovement: { create: jest.fn().mockResolvedValue({}) },
     stockItem: { upsert: jest.fn().mockResolvedValue({}) },
   };
+  // Por defecto: stock abundante (1000) para cada producto, así las ventas pasan.
+  const stock =
+    opts.stock ?? opts.products.map((p) => ({ productId: p.id, quantity: new Prisma.Decimal(1000) }));
   const prisma = {
     product: { findMany: jest.fn().mockResolvedValue(opts.products) },
     warehouse: {
@@ -23,6 +30,7 @@ function setup(opts: { products: ReturnType<typeof product>[]; warehouse?: { id:
         opts.warehouse === undefined ? { id: "wh_default" } : opts.warehouse
       ),
     },
+    stockItem: { findMany: jest.fn().mockResolvedValue(stock) },
     $transaction: jest.fn((cb: (t: typeof tx) => unknown) => cb(tx)),
   };
   const service = new SalesService(prisma as never);
@@ -103,6 +111,17 @@ describe("SalesService.create", () => {
 
     await expect(
       service.create(baseInput([{ productId: "p1", quantity: 1, discount: 0 }]), "u1")
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it("lanza BadRequestException si no hay stock suficiente (no vende en negativo)", async () => {
+    const { service } = setup({
+      products: [product("p1", "100")],
+      stock: [{ productId: "p1", quantity: new Prisma.Decimal(2) }],
+    });
+
+    await expect(
+      service.create(baseInput([{ productId: "p1", quantity: 5, discount: 0 }]), "u1")
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 });

@@ -75,4 +75,37 @@ export class ReportsService {
       })),
     };
   }
+
+  // Planilla de compra: todos los productos activos bajo el mínimo, con la
+  // cantidad sugerida a comprar (para llegar al mínimo).
+  async lowStock() {
+    const zero = new Prisma.Decimal(0);
+    const products = await this.prisma.product.findMany({
+      where: { active: true },
+      select: {
+        id: true,
+        name: true,
+        sku: true,
+        stockItems: { select: { quantity: true, minQuantity: true } },
+      },
+      orderBy: { name: "asc" },
+    });
+
+    return products
+      .map((p) => {
+        const stock = p.stockItems.reduce((s, i) => s.plus(i.quantity), zero);
+        const min = p.stockItems.reduce((s, i) => s.plus(i.minQuantity), zero);
+        const toBuy = min.minus(stock);
+        return {
+          id: p.id,
+          name: p.name,
+          sku: p.sku,
+          stock: stock.toString(),
+          min: min.toString(),
+          toBuy: toBuy.greaterThan(0) ? toBuy.toString() : "0",
+          low: stock.lte(min),
+        };
+      })
+      .filter((p) => p.low);
+  }
 }

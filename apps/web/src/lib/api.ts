@@ -156,6 +156,19 @@ export async function fetchSummary(): Promise<DashboardSummary> {
   return request<DashboardSummary>("/api/reports/summary");
 }
 
+export type LowStockItem = {
+  id: string;
+  name: string;
+  sku: string;
+  stock: string;
+  min: string;
+  toBuy: string;
+};
+
+export async function fetchLowStock(): Promise<LowStockItem[]> {
+  return request<LowStockItem[]>("/api/reports/low-stock");
+}
+
 // ── Historial de ventas ──────────────────────────────────────
 export type SaleListRow = {
   id: string;

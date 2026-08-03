@@ -501,6 +501,23 @@ h3 {
   border: 1px solid rgba(30, 135, 75, 0.35);
 }
 
+/* ── Impresión (planillas, comprobantes) ─────────────────── */
+@media print {
+  .app-header,
+  .bottom-nav,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    padding-bottom: 0;
+    background: #fff;
+  }
+  .card {
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+}
+
 /* ── Login ───────────────────────────────────────────────── */
 .auth-wrap {
   min-height: 100vh;

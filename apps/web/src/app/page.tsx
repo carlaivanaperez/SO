@@ -157,9 +157,20 @@ export default function DashboardPage() {
           </section>
 
           <section className="card">
-            <h2 style={{ fontSize: 16 }}>Poco stock</h2>
+            <div
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}
+            >
+              <h2 style={{ fontSize: 16, margin: 0 }}>Poco stock</h2>
+              {summary && summary.lowStock.count > 0 && (
+                <Link href="/compras" className="btn btn-primary" style={{ padding: "6px 12px", fontSize: 13 }}>
+                  📋 Planilla de compra
+                </Link>
+              )}
+            </div>
             {summary?.lowStock.items.length === 0 && (
-              <p className="muted">Todo el stock está por encima del mínimo. 👍</p>
+              <p className="muted" style={{ marginTop: 12 }}>
+                Todo el stock está por encima del mínimo. 👍
+              </p>
             )}
             {summary?.lowStock.items.map((p) => (
               <div key={p.id} className="list-row">

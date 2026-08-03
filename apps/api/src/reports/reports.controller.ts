@@ -12,4 +12,10 @@ export class ReportsController {
   summary() {
     return this.reports.summary();
   }
+
+  // Planilla de compra: productos bajo el mínimo con cantidad sugerida.
+  @Get("low-stock")
+  lowStock() {
+    return this.reports.lowStock();
+  }
 }

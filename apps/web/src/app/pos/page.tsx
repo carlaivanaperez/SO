@@ -15,6 +15,7 @@ import {
 } from "@/lib/api";
 import { getToken, getUser, clearSession, type SessionUser } from "@/lib/auth";
 import { promoLineDiscount, type CreateSaleInput } from "@ferrestock/shared";
+import { CustomerPicker } from "@/components/CustomerPicker";
 
 type CartLine = { product: ProductRow; quantity: number };
 type PaymentMethod = CreateSaleInput["paymentMethod"];
@@ -51,6 +52,15 @@ export default function PosPage() {
       .then((list) => setPromos(Object.fromEntries(list.map((p) => [p.productId, p]))))
       .catch(() => {});
   }, [router]);
+
+  // Recarga clientes al volver a la pestaña (ej. tras cargar uno nuevo).
+  useEffect(() => {
+    function onFocus() {
+      if (getToken()) fetchCustomers().then(setCustomers).catch(() => {});
+    }
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
 
   // Info de una línea con su promoción aplicada (descuento congelado en la venta).
   function lineInfo(l: CartLine) {
@@ -308,21 +318,7 @@ export default function PosPage() {
                   <span className="muted">(opcional)</span>
                 )}
               </span>
-              <select
-                className="input"
-                value={customerId}
-                onChange={(e) => setCustomerId(e.target.value)}
-              >
-                <option value="">— Sin cliente —</option>
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                    {Number(c.balance) > 0
-                      ? ` (debe $${Number(c.balance).toLocaleString("es-AR")})`
-                      : ""}
-                  </option>
-                ))}
-              </select>
+              <CustomerPicker customers={customers} value={customerId} onChange={setCustomerId} />
             </div>
 
             <p style={{ fontSize: 22, fontWeight: 800, color: "var(--text)" }}>

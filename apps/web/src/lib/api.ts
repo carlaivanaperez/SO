@@ -4,6 +4,9 @@ import type {
   Paginated,
   AuthResponse,
   LoginInput,
+  RegisterInput,
+  UpdateUserInput,
+  StaffUser,
   CreateSaleInput,
   CreateProductInput,
   UpdateProductInput,
@@ -316,4 +319,19 @@ export async function createPromotion(input: CreatePromotionInput): Promise<{ id
 
 export async function deletePromotion(id: string): Promise<unknown> {
   return request(`/api/promotions/${id}`, { method: "DELETE" });
+}
+
+// ── Usuarios / staff (solo ADMIN) ────────────────────────────
+export async function fetchUsers(): Promise<StaffUser[]> {
+  return request<StaffUser[]>("/api/auth/users");
+}
+
+// Crea un usuario. La API devuelve un token del nuevo usuario que ignoramos
+// (no cambiamos la sesión del admin).
+export async function createUser(input: RegisterInput): Promise<unknown> {
+  return request("/api/auth/register", { method: "POST", body: JSON.stringify(input) });
+}
+
+export async function updateUser(id: string, input: UpdateUserInput): Promise<unknown> {
+  return request(`/api/auth/users/${id}`, { method: "PATCH", body: JSON.stringify(input) });
 }

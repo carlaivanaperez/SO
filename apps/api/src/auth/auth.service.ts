@@ -8,6 +8,7 @@ import type {
   AuthResponse,
   JwtPayload,
   UserRoleDTO,
+  UpdateUserInput,
 } from "@ferrestock/shared";
 import { UserRole } from "@ferrestock/db";
 
@@ -41,6 +42,22 @@ export class AuthService {
     if (!ok || !user) throw new UnauthorizedException("Credenciales inválidas");
 
     return this.buildResponse(user.id, user.email, user.name, user.role);
+  }
+
+  // Staff del panel (sin el hash de contraseña).
+  listUsers() {
+    return this.prisma.user.findMany({
+      orderBy: { createdAt: "asc" },
+      select: { id: true, email: true, name: true, role: true, active: true },
+    });
+  }
+
+  updateUser(id: string, dto: UpdateUserInput) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { role: dto.role as UserRole | undefined, active: dto.active },
+      select: { id: true, email: true, name: true, role: true, active: true },
+    });
   }
 
   private async buildResponse(

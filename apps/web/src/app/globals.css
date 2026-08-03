@@ -147,6 +147,27 @@ h3 {
   color: #fff;
   text-decoration: none;
 }
+
+/* Ítems del menú como botones flotantes */
+.nav-btn {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f0f2f5 !important;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background 0.12s ease, transform 0.06s ease;
+}
+.nav-btn:hover {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: #141414 !important;
+  text-decoration: none;
+}
+.nav-btn:active {
+  transform: translateY(1px);
+}
 .nav .user {
   color: #9fb2c6;
   font-size: 14px;

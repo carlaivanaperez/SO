@@ -241,9 +241,10 @@ Lo que **falta**, en orden sugerido:
    corren con `pnpm test`.
 3. **Matching de productos en WhatsApp**: hoy es `contains` simple; mejorar con
    full-text search de Postgres o similar.
-4. **Guía de uso** in-app (didáctica, público no técnico) y **refinar roles**
-   (vendedor / stock / admin) con permisos claros. **Clientes y cuentas
-   corrientes** ya están hechos.
+4. **Guía de uso** in-app (didáctica, público no técnico). **Roles y usuarios**
+   ya están: pantalla `/usuarios` (solo ADMIN) para crear staff y asignar rol;
+   nombres de rol y descripciones en `roleLabels`/`roleDescriptions` (shared).
+   **Clientes y cuentas corrientes** también.
 5. **Comprobante por WhatsApp** (imprimir ya está en `/ventas/[id]`). El
    **historial de ventas** con filtros ya está hecho.
 6. **CI**: sin pipeline de tests automáticos aún (el deploy sí está, §12).

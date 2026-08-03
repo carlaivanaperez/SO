@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { ZodValidationPipe } from "../common/zod-validation.pipe";
 import { JwtAuthGuard } from "./jwt-auth.guard";
@@ -8,8 +17,10 @@ import { CurrentUser } from "./current-user.decorator";
 import {
   loginSchema,
   registerSchema,
+  updateUserSchema,
   type LoginInput,
   type RegisterInput,
+  type UpdateUserInput,
   type JwtPayload,
 } from "@ferrestock/shared";
 
@@ -28,6 +39,28 @@ export class AuthController {
   @Roles("ADMIN")
   register(@Body(new ZodValidationPipe(registerSchema)) dto: RegisterInput) {
     return this.auth.register(dto);
+  }
+
+  @Get("users")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("ADMIN")
+  listUsers() {
+    return this.auth.listUsers();
+  }
+
+  @Patch("users/:id")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("ADMIN")
+  updateUser(
+    @Param("id") id: string,
+    @Body(new ZodValidationPipe(updateUserSchema)) dto: UpdateUserInput,
+    @CurrentUser() user: JwtPayload
+  ) {
+    // Evitar que un admin se desactive o se quite el rol a sí mismo (lockout).
+    if (id === user.sub && (dto.active === false || (dto.role && dto.role !== "ADMIN"))) {
+      throw new BadRequestException("No podés quitarte tu propio acceso de administrador");
+    }
+    return this.auth.updateUser(id, dto);
   }
 
   @Get("me")

@@ -9,14 +9,34 @@ import {
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("es-AR");
 
+type PayMethod = "CASH" | "CARD" | "TRANSFER" | "ACCOUNT";
+const PAYMENT_METHODS: { value: PayMethod; label: string }[] = [
+  { value: "CASH", label: "Efectivo" },
+  { value: "CARD", label: "Tarjeta (débito/crédito)" },
+  { value: "TRANSFER", label: "Transferencia" },
+  { value: "ACCOUNT", label: "Cuenta corriente" },
+];
+const PM_SHORT: Record<string, string> = {
+  CASH: "Efectivo",
+  CARD: "Tarjeta",
+  TRANSFER: "Transferencia",
+  ACCOUNT: "Cta. corriente",
+};
+
 function label(p: ProductPromotion): string {
   return p.type === "PERCENT" ? `${Number(p.percent ?? 0)}% de descuento` : "2x1";
+}
+
+function methodsLabel(methods: string[]): string {
+  if (!methods || methods.length === 0) return "Todos los medios de pago";
+  return methods.map((m) => PM_SHORT[m] ?? m).join(", ");
 }
 
 export function ProductPromotions({ productId }: { productId: string }) {
   const [promos, setPromos] = useState<ProductPromotion[]>([]);
   const [type, setType] = useState<"PERCENT" | "TWO_FOR_ONE">("PERCENT");
   const [percent, setPercent] = useState("10");
+  const [methods, setMethods] = useState<PayMethod[]>([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -41,11 +61,13 @@ export function ProductPromotions({ productId }: { productId: string }) {
         productId,
         type,
         percent: type === "PERCENT" ? Number(percent) : undefined,
+        paymentMethods: methods,
         startDate,
         endDate,
       });
       setStartDate("");
       setEndDate("");
+      setMethods([]);
       load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo crear la promoción");
@@ -80,7 +102,7 @@ export function ProductPromotions({ productId }: { productId: string }) {
               )}
               <br />
               <span className="muted" style={{ fontSize: 12 }}>
-                {fmtDate(p.startDate)} → {fmtDate(p.endDate)}
+                {fmtDate(p.startDate)} → {fmtDate(p.endDate)} · 💳 {methodsLabel(p.paymentMethods)}
               </span>
             </span>
             <button
@@ -144,6 +166,32 @@ export function ProductPromotions({ productId }: { productId: string }) {
             />
           </label>
         </div>
+
+        <div className="field">
+          <span className="label">Válida con estos medios de pago</span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+            {PAYMENT_METHODS.map((pm) => (
+              <label key={pm.value} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <input
+                  type="checkbox"
+                  checked={methods.includes(pm.value)}
+                  onChange={(e) =>
+                    setMethods((prev) =>
+                      e.target.checked
+                        ? [...prev, pm.value]
+                        : prev.filter((m) => m !== pm.value)
+                    )
+                  }
+                />
+                <span>{pm.label}</span>
+              </label>
+            ))}
+          </div>
+          <span className="muted" style={{ fontSize: 12 }}>
+            Si no marcás ninguno, la promo aplica a <strong>todos</strong> los medios.
+          </span>
+        </div>
+
         {error && <p className="alert alert-error">⚠️ {error}</p>}
         <button type="submit" disabled={saving} className="btn btn-primary">
           {saving ? "Guardando…" : "Agregar promoción"}

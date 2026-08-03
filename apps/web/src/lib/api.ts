@@ -290,6 +290,7 @@ export type ActivePromotion = {
   productId: string;
   type: "PERCENT" | "TWO_FOR_ONE";
   percent: string | null;
+  paymentMethods: string[];
   endDate: string;
 };
 
@@ -297,6 +298,7 @@ export type ProductPromotion = {
   id: string;
   type: "PERCENT" | "TWO_FOR_ONE";
   percent: string | null;
+  paymentMethods: string[];
   startDate: string;
   endDate: string;
   active: boolean;

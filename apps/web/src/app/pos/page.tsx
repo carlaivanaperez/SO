@@ -14,7 +14,7 @@ import {
   type ActivePromotion,
 } from "@/lib/api";
 import { getToken, getUser, clearSession, type SessionUser } from "@/lib/auth";
-import { promoLineDiscount, type CreateSaleInput } from "@ferrestock/shared";
+import { promoLineDiscount, promoAppliesToPayment, type CreateSaleInput } from "@ferrestock/shared";
 import { CustomerPicker } from "@/components/CustomerPicker";
 
 type CartLine = { product: ProductRow; quantity: number };
@@ -63,14 +63,17 @@ export default function PosPage() {
   }, []);
 
   // Info de una línea con su promoción aplicada (descuento congelado en la venta).
+  // La promo solo se aplica si el medio de pago elegido está habilitado.
   function lineInfo(l: CartLine) {
     const unit = Number(l.product.salePrice);
     const gross = unit * l.quantity;
     const promo = promos[l.product.id];
-    const discount = promo
-      ? promoLineDiscount(promo.type, promo.percent ? Number(promo.percent) : null, unit, l.quantity)
-      : 0;
-    return { unit, gross, discount, total: gross - discount, promo };
+    const applies = promo ? promoAppliesToPayment(promo.paymentMethods, payment) : false;
+    const discount =
+      promo && applies
+        ? promoLineDiscount(promo.type, promo.percent ? Number(promo.percent) : null, unit, l.quantity)
+        : 0;
+    return { unit, gross, discount, total: gross - discount, promo, applies };
   }
 
   useEffect(() => {
@@ -119,7 +122,7 @@ export default function PosPage() {
   const total = useMemo(
     () => cart.reduce((sum, l) => sum + lineInfo(l).total, 0),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cart, promos]
+    [cart, promos, payment]
   );
 
   async function confirm() {
@@ -222,11 +225,16 @@ export default function PosPage() {
                   <div style={{ fontWeight: 600 }}>{l.product.name}</div>
                   <div className="muted" style={{ fontSize: 13 }}>
                     ${info.unit.toLocaleString("es-AR")} c/u
-                    {info.promo && (
+                    {info.promo && info.applies && (
                       <span className="badge badge-warn" style={{ marginLeft: 6 }}>
                         {info.promo.type === "PERCENT"
                           ? `${Number(info.promo.percent ?? 0)}% off`
                           : "2x1"}
+                      </span>
+                    )}
+                    {info.promo && !info.applies && (
+                      <span style={{ marginLeft: 6, fontSize: 12, color: "var(--muted)" }}>
+                        (promo no aplica a este pago)
                       </span>
                     )}
                   </div>

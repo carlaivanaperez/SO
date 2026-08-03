@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import type { CreatePromotionInput } from "@ferrestock/shared";
-import { PromotionType } from "@ferrestock/db";
+import { PromotionType, PaymentMethod } from "@ferrestock/db";
 
 // Argentina: offset fijo -3h. Inicio/fin del día en hora AR (en UTC).
 const AR_OFFSET_MS = 3 * 60 * 60 * 1000;
@@ -24,6 +24,7 @@ export class PromotionsService {
         productId: dto.productId,
         type: dto.type as PromotionType,
         percent: dto.type === "PERCENT" ? dto.percent : null,
+        paymentMethods: (dto.paymentMethods ?? []) as PaymentMethod[],
         startDate: arDayStart(dto.startDate),
         // La fecha fin incluye todo ese día (hasta las 23:59:59.999 AR).
         endDate: new Date(arDayStart(dto.endDate).getTime() + DAY_MS - 1),
@@ -43,7 +44,14 @@ export class PromotionsService {
     const now = new Date();
     return this.prisma.promotion.findMany({
       where: { active: true, startDate: { lte: now }, endDate: { gte: now } },
-      select: { id: true, productId: true, type: true, percent: true, endDate: true },
+      select: {
+        id: true,
+        productId: true,
+        type: true,
+        percent: true,
+        paymentMethods: true,
+        endDate: true,
+      },
     });
   }
 

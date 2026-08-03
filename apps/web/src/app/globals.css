@@ -148,6 +148,60 @@ h3 {
   text-decoration: none;
 }
 
+.top-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Tab bar inferior (solo mobile) */
+.bottom-nav {
+  display: none;
+}
+@media (max-width: 720px) {
+  .top-nav-links {
+    display: none;
+  }
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--header-bg);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.25);
+  }
+  .bn-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 9px 2px 7px;
+    color: #b7c2ce;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .bn-item.active {
+    color: var(--yellow);
+  }
+  .bn-icon {
+    font-size: 21px;
+    line-height: 1;
+  }
+  .bn-label {
+    line-height: 1;
+  }
+  body {
+    padding-bottom: 64px; /* espacio para el tab bar */
+  }
+}
+
 /* Ítems del menú como botones flotantes */
 .nav-btn {
   padding: 8px 14px;

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { clearSession, type SessionUser } from "@/lib/auth";
 import { roleLabels } from "@ferrestock/shared";
 import { ThemeToggle } from "./ThemeToggle";
+import { BottomNav } from "./BottomNav";
 
 // Encabezado con el logo del almacén y la navegación principal.
 export function AppHeader({ user }: { user: SessionUser | null }) {
@@ -15,6 +16,7 @@ export function AppHeader({ user }: { user: SessionUser | null }) {
   }
 
   return (
+    <>
     <header className="app-header">
       <div className="inner">
         <Link href="/" className="brand" style={{ color: "#fff" }}>
@@ -31,23 +33,25 @@ export function AppHeader({ user }: { user: SessionUser | null }) {
         </Link>
 
         <nav className="nav">
-          <Link href="/" className="nav-btn">
-            Panel
-          </Link>
-          <Link href="/pos" className="nav-btn">
-            Punto de venta
-          </Link>
-          <Link href="/ventas" className="nav-btn">
-            Ventas
-          </Link>
-          <Link href="/clientes" className="nav-btn">
-            Clientes
-          </Link>
-          {user?.role === "ADMIN" && (
-            <Link href="/usuarios" className="nav-btn">
-              Usuarios
+          <span className="top-nav-links">
+            <Link href="/" className="nav-btn">
+              Panel
             </Link>
-          )}
+            <Link href="/pos" className="nav-btn">
+              Punto de venta
+            </Link>
+            <Link href="/ventas" className="nav-btn">
+              Ventas
+            </Link>
+            <Link href="/clientes" className="nav-btn">
+              Clientes
+            </Link>
+            {user?.role === "ADMIN" && (
+              <Link href="/usuarios" className="nav-btn">
+                Usuarios
+              </Link>
+            )}
+          </span>
           {user && (
             <span className="user">
               {user.name} · {roleLabels[user.role]}
@@ -60,5 +64,7 @@ export function AppHeader({ user }: { user: SessionUser | null }) {
         </nav>
       </div>
     </header>
+    <BottomNav user={user} />
+    </>
   );
 }

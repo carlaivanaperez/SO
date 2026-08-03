@@ -6,9 +6,11 @@ import { AppHeader } from "@/components/AppHeader";
 import {
   fetchProducts,
   fetchSummary,
+  fetchActivePromotions,
   ApiError,
   type ProductRow,
   type DashboardSummary,
+  type ActivePromotion,
 } from "@/lib/api";
 import { getToken, getUser, clearSession, canManage, type SessionUser } from "@/lib/auth";
 
@@ -26,6 +28,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [promoMap, setPromoMap] = useState<Record<string, ActivePromotion>>({});
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -66,6 +69,14 @@ export default function DashboardPage() {
     window.addEventListener("focus", loadSummary);
     return () => window.removeEventListener("focus", loadSummary);
   }, [loadSummary]);
+
+  // Promos vigentes → para marcar productos con promo en el catálogo.
+  useEffect(() => {
+    if (!getToken()) return;
+    fetchActivePromotions()
+      .then((list) => setPromoMap(Object.fromEntries(list.map((p) => [p.productId, p]))))
+      .catch(() => {});
+  }, []);
 
   // Catálogo (con búsqueda + debounce).
   useEffect(() => {
@@ -205,6 +216,14 @@ export default function DashboardPage() {
                     <td className="muted">{p.sku}</td>
                     <td>
                       <strong>{p.name}</strong>
+                      {promoMap[p.id] && (
+                        <span className="badge badge-warn" style={{ marginLeft: 8 }}>
+                          🏷️{" "}
+                          {promoMap[p.id]!.type === "PERCENT"
+                            ? `${Number(promoMap[p.id]!.percent ?? 0)}% off`
+                            : "2x1"}
+                        </span>
+                      )}
                     </td>
                     <td>{money(p.salePrice)}</td>
                     <td>

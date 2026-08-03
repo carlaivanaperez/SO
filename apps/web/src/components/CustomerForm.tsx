@@ -8,6 +8,7 @@ import {
   type CustomerDetail,
 } from "@/lib/api";
 import { clearSession } from "@/lib/auth";
+import { normalizeArPhone } from "@ferrestock/shared";
 
 export function CustomerForm({ initial }: { initial: CustomerDetail | null }) {
   const router = useRouter();
@@ -26,10 +27,22 @@ export function CustomerForm({ initial }: { initial: CustomerDetail | null }) {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+
+    // Normalizamos el celular a E.164 (+549…) para WhatsApp.
+    let phoneE164: string | undefined;
+    if (phone.trim()) {
+      const normalized = normalizeArPhone(phone);
+      if (!normalized) {
+        setError("No pudimos interpretar el teléfono. Escribí el celular de 10 dígitos, ej: 3624721664");
+        return;
+      }
+      phoneE164 = normalized;
+    }
+
     setSaving(true);
     const payload = {
       name: name.trim(),
-      phone: phone.trim() || undefined,
+      phone: phoneE164,
       taxId: taxId.trim() || undefined,
       email: email.trim() || undefined,
       address: address.trim() || undefined,
@@ -58,8 +71,24 @@ export function CustomerForm({ initial }: { initial: CustomerDetail | null }) {
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
       </Field>
       <div className="grid-2">
-        <Field label="Teléfono (WhatsApp, ej: +5491122334455)">
-          <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        <Field label="Celular (WhatsApp)">
+          <input
+            className="input"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="Ej: 3624721664"
+            inputMode="tel"
+          />
+          {phone.trim() &&
+            (normalizeArPhone(phone) ? (
+              <span className="muted" style={{ fontSize: 12 }}>
+                Se guardará como <strong>{normalizeArPhone(phone)}</strong> (para WhatsApp)
+              </span>
+            ) : (
+              <span style={{ fontSize: 12, color: "var(--danger)" }}>
+                Revisá el número: escribí el celular de 10 dígitos, ej: 3624721664
+              </span>
+            ))}
         </Field>
         <Field label="CUIT / DNI">
           <input className="input" value={taxId} onChange={(e) => setTaxId(e.target.value)} />

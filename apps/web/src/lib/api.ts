@@ -130,3 +130,20 @@ export async function adjustStock(id: string, input: StockAdjustmentInput): Prom
 export async function fetchWarehouses(): Promise<Warehouse[]> {
   return request<Warehouse[]>("/api/warehouses");
 }
+
+export type DashboardSummary = {
+  today: { count: number; revenue: string };
+  lowStock: { count: number; items: { id: string; name: string; stock: string; min: string }[] };
+  recentSales: {
+    id: string;
+    number: number;
+    total: string;
+    createdAt: string;
+    paymentMethod: string | null;
+    itemCount: number;
+  }[];
+};
+
+export async function fetchSummary(): Promise<DashboardSummary> {
+  return request<DashboardSummary>("/api/reports/summary");
+}

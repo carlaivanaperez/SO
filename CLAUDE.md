@@ -207,21 +207,26 @@ mandarlo en `Authorization: Bearer <token>` en cada request.
 
 Ya hecho: modelo de datos, **auth JWT + roles**, migración inicial
 (`packages/db/prisma/migrations/`), flujos de ventas y stock, bot de WhatsApp,
-y en la **web**: login, dashboard de catálogo protegido, **POS** (punto de venta),
-**ABM de productos** y **ajustes de stock**.
+**deploy en producción** (§12), y en la **web**: login, **dashboard** con
+indicadores (ventas del día, dinero, stock bajo, últimas ventas), catálogo con
+**stock tipo semáforo**, **POS** (punto de venta), **ABM de productos**,
+**ajustes de stock**, **branding** (logo + paleta amarillo/negro/blanco) y
+**modo oscuro**.
 
 **UI web** (`apps/web/src/`): `lib/auth.ts` guarda el token JWT en `localStorage`
 y expone `canManage()` (gate de ADMIN/MANAGER); `lib/api.ts` es el cliente HTTP
-que adjunta `Authorization: Bearer`. Rutas: `/login`, `/` (catálogo + buscador +
-acciones de gestión), `/pos` (carrito + venta), `/products/new`,
-`/products/[id]/edit` y `/products/[id]/stock` (usa `GET /api/warehouses`).
-`components/ProductForm.tsx` es el formulario compartido de alta/edición. Todas
-las páginas son client components y redirigen a `/login` ante un `401`.
+que adjunta `Authorization: Bearer`. `app/globals.css` es el sistema de diseño
+(variables de tema claro/oscuro). Componentes: `AppHeader` (logo + nav + toggle),
+`ThemeToggle`, `ProductForm`. Rutas: `/login`, `/` (dashboard + catálogo), `/pos`
+(carrito + venta), `/products/new`, `/products/[id]/edit` y `/products/[id]/stock`.
+El dashboard consume `GET /api/reports/summary`. Todas las páginas son client
+components y redirigen a `/login` ante un `401`. El logo va en
+`apps/web/public/logo.png`.
 
 Lo que **falta**, en orden sugerido:
 
-1. **Reportes web** (ventas por período, stock bajo mínimo) y la app **mobile**
-   completa (hoy solo lista el catálogo).
+1. **Más reportes** (ventas por período, más vendidos, margen) y la app **mobile**
+   completa (hoy solo lista el catálogo). El dashboard base ya está.
 2. **Tests**: hay tests unitarios (Jest) de `sales.service` (totales/IVA,
    congelado de precio, descuento de stock) y `products.service` (ajuste de
    stock, historial de precios). Falta cubrir el **matching de WhatsApp** y sumar
@@ -230,15 +235,37 @@ Lo que **falta**, en orden sugerido:
 3. **Matching de productos en WhatsApp**: hoy es `contains` simple; mejorar con
    full-text search de Postgres o similar.
 4. **Clientes y cuentas corrientes**: CRUD de clientes y ventas a cuenta.
-5. **Deploy/CI**: sin pipeline aún.
+5. **Historial de ventas** (buscar por fecha/producto/pago) y **comprobante**
+   (imprimir / enviar por WhatsApp).
+6. **CI**: sin pipeline de tests automáticos aún (el deploy sí está, §12).
 
 Cuando completes un punto, actualizá esta sección y las partes relevantes del archivo.
 
 **Estado de verificación:** `pnpm typecheck` pasa en los 5 paquetes,
 `pnpm test` corre 10 tests unitarios en verde y
-`pnpm --filter @ferrestock/web build` compila las 7 rutas. Todavía **no** se
-levantó contra una base real (requiere Docker/Postgres, que no estaba disponible
-en el entorno de desarrollo usado). Para verlo funcionando: seguí §3.
+`pnpm --filter @ferrestock/web build` compila la web. Corriendo en producción
+(§12) contra Postgres en Neon.
+
+---
+
+## 12. Deploy (producción)
+
+La app está **publicada**. Tres piezas:
+
+- **Base de datos:** **Neon** (Postgres serverless). Dos cadenas: `DATABASE_URL`
+  (pooled) y `DIRECT_URL` (directa). Ver §3.
+- **API:** **Render** (`render.yaml` en la raíz, Blueprint). Build:
+  `npm i -g pnpm && pnpm install && pnpm turbo run build --filter=@ferrestock/api`;
+  start: `node apps/api/dist/main.js`; health: `GET /api/health`. Variables en el
+  panel de Render (`DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `WEB_ORIGIN`
+  opcional). Escucha en `process.env.PORT`.
+- **Web:** **Vercel** (`apps/web/vercel.json`, Root Directory `apps/web`). Compila
+  `shared` antes que `web`. Variable `API_PUBLIC_URL` = URL pública de la API en
+  Render (la inyecta como `NEXT_PUBLIC_API_URL` vía `next.config.mjs`).
+
+Ambos (Render y Vercel) auto-deployan al pushear a la rama por defecto
+(`claude/claude-md-docs-pn5uln`). `.node-version` fija Node 20 para builds
+deterministas.
 
 ---
 

@@ -242,6 +242,56 @@ h3 {
   flex-wrap: wrap;
 }
 
+/* ── Indicadores (KPIs) del dashboard ────────────────────── */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.kpi {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--yellow);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+}
+.kpi .kpi-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.kpi .kpi-value {
+  font-size: 26px;
+  font-weight: 800;
+  margin-top: 4px;
+  color: var(--text);
+}
+.kpi.kpi-danger {
+  border-left-color: var(--danger);
+}
+.kpi.kpi-money {
+  border-left-color: var(--success);
+}
+.list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+.list-row:last-child {
+  border-bottom: none;
+}
+
+@media (max-width: 720px) {
+  .kpis {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Grillas responsive ──────────────────────────────────── */
 .grid-2 {
   display: grid;

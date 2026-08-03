@@ -5,6 +5,7 @@ import { ProductsModule } from "./products/products.module";
 import { SalesModule } from "./sales/sales.module";
 import { WarehousesModule } from "./warehouses/warehouses.module";
 import { WhatsappModule } from "./whatsapp/whatsapp.module";
+import { ReportsModule } from "./reports/reports.module";
 import { HealthController } from "./health.controller";
 
 @Module({
@@ -15,6 +16,7 @@ import { HealthController } from "./health.controller";
     SalesModule,
     WarehousesModule,
     WhatsappModule,
+    ReportsModule,
   ],
   controllers: [HealthController],
 })

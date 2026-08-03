@@ -33,6 +33,7 @@ export function AppHeader({ user }: { user: SessionUser | null }) {
           <Link href="/">Panel</Link>
           <Link href="/pos">🧾 Punto de venta</Link>
           <Link href="/ventas">Ventas</Link>
+          <Link href="/clientes">Clientes</Link>
           {user && <span className="user">{user.name}</span>}
           <ThemeToggle />
           <button onClick={logout} className="btn btn-ghost">

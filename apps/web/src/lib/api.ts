@@ -9,6 +9,9 @@ import type {
   UpdateProductInput,
   StockAdjustmentInput,
   ProductUnitDTO,
+  CreateCustomerInput,
+  UpdateCustomerInput,
+  CustomerPaymentInput,
 } from "@ferrestock/shared";
 import { getToken } from "./auth";
 
@@ -201,4 +204,70 @@ export type SaleDetail = {
 
 export async function fetchSale(id: string): Promise<SaleDetail> {
   return request<SaleDetail>(`/api/sales/${id}`);
+}
+
+// ── Clientes y cuentas corrientes ────────────────────────────
+export type CustomerRow = {
+  id: string;
+  name: string;
+  phone: string | null;
+  taxId: string | null;
+  balance: string; // saldo cta. corriente (positivo = nos debe)
+};
+
+export type CustomerMovement = {
+  id: string;
+  type: "SALE" | "PAYMENT";
+  date: string;
+  amount: string;
+  detail: string;
+  method: string | null;
+};
+
+export type CustomerDetail = {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  taxId: string | null;
+  address: string | null;
+  notes: string | null;
+  balance: string;
+  movements: CustomerMovement[];
+};
+
+export async function fetchCustomers(search = ""): Promise<CustomerRow[]> {
+  const qs = search ? `?search=${encodeURIComponent(search)}` : "";
+  return request<CustomerRow[]>(`/api/customers${qs}`);
+}
+
+export async function fetchCustomer(id: string): Promise<CustomerDetail> {
+  return request<CustomerDetail>(`/api/customers/${id}`);
+}
+
+export async function createCustomer(input: CreateCustomerInput): Promise<{ id: string }> {
+  return request<{ id: string }>("/api/customers", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateCustomer(
+  id: string,
+  input: UpdateCustomerInput
+): Promise<{ id: string }> {
+  return request<{ id: string }>(`/api/customers/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function addCustomerPayment(
+  id: string,
+  input: CustomerPaymentInput
+): Promise<unknown> {
+  return request(`/api/customers/${id}/payments`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }

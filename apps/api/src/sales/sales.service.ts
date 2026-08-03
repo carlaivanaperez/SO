@@ -74,6 +74,11 @@ export class SalesService {
    * Si algo falla (ej: sin stock), la transacción entera se revierte.
    */
   async create(dto: CreateSaleInput, userId: string) {
+    // Las ventas a cuenta corriente deben tener un cliente asociado.
+    if (dto.paymentMethod === "ACCOUNT" && !dto.customerId) {
+      throw new BadRequestException("Las ventas a cuenta corriente requieren elegir un cliente");
+    }
+
     const productIds = dto.items.map((i) => i.productId);
     const products = await this.prisma.product.findMany({
       where: { id: { in: productIds } },

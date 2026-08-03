@@ -140,6 +140,9 @@ Es la **fuente de verdad**. Entidades principales:
   (`PURCHASE/SALE/ADJUSTMENT/RETURN/TRANSFER`). **El stock real es la suma de
   los movimientos**; `StockItem.quantity` es un caché para lectura rápida.
 - **Customer** — clientes; `phone` en **E.164** es la clave para vincular WhatsApp.
+- **CustomerPayment** — pagos a la **cuenta corriente** de un cliente. El saldo se
+  calcula: ventas con `paymentMethod ACCOUNT` (cargos) − pagos. No se guarda un
+  campo de saldo; se computa (como el stock).
 - **Sale** / **SaleItem** — ventas con precio **congelado** al momento de la venta.
 - **WhatsAppQuery** — registro de cada consulta entrante por WhatsApp (auditoría y métricas de demanda).
 
@@ -218,10 +221,12 @@ y expone `canManage()` (gate de ADMIN/MANAGER); `lib/api.ts` es el cliente HTTP
 que adjunta `Authorization: Bearer`. `app/globals.css` es el sistema de diseño
 (variables de tema claro/oscuro). Componentes: `AppHeader` (logo + nav + toggle),
 `ThemeToggle`, `ProductForm`. Rutas: `/login`, `/` (dashboard + catálogo), `/pos`
-(carrito + venta), `/ventas` (historial con filtros) + `/ventas/[id]` (detalle +
-imprimir), `/products/new`, `/products/[id]/edit` y `/products/[id]/stock`.
+(carrito + venta + selección de cliente), `/ventas` (historial con filtros) +
+`/ventas/[id]` (detalle + imprimir), `/clientes` (+ `/new`, `/[id]` con saldo y
+pagos, `/[id]/edit`), `/products/new`, `/products/[id]/edit` y `/products/[id]/stock`.
 El dashboard consume `GET /api/reports/summary`; el historial `GET /api/sales`
-(filtros: `from`/`to`/`paymentMethod`/`product`). Todas las páginas son client
+(filtros: `from`/`to`/`paymentMethod`/`product`); clientes `GET /api/customers`
+(con saldo) y `POST /api/customers/:id/payments`. Todas las páginas son client
 components y redirigen a `/login` ante un `401`. El logo va en
 `apps/web/public/logo.png`.
 
@@ -236,7 +241,9 @@ Lo que **falta**, en orden sugerido:
    corren con `pnpm test`.
 3. **Matching de productos en WhatsApp**: hoy es `contains` simple; mejorar con
    full-text search de Postgres o similar.
-4. **Clientes y cuentas corrientes**: CRUD de clientes y ventas a cuenta.
+4. **Guía de uso** in-app (didáctica, público no técnico) y **refinar roles**
+   (vendedor / stock / admin) con permisos claros. **Clientes y cuentas
+   corrientes** ya están hechos.
 5. **Comprobante por WhatsApp** (imprimir ya está en `/ventas/[id]`). El
    **historial de ventas** con filtros ya está hecho.
 6. **CI**: sin pipeline de tests automáticos aún (el deploy sí está, §12).
@@ -273,6 +280,10 @@ Tres piezas:
 Ambos (Render y Vercel) auto-deployan al pushear a la rama por defecto
 (`claude/claude-md-docs-pn5uln`). `.node-version` fija Node 20 para builds
 deterministas.
+
+**Migraciones en producción:** el `startCommand` de Render corre
+`prisma migrate deploy` antes de arrancar la API, así las migraciones nuevas se
+aplican solas en Neon en cada deploy (el plan free no soporta pre-deploy).
 
 ---
 

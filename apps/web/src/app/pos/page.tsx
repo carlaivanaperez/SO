@@ -2,7 +2,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
-import { fetchProducts, createSale, ApiError, type ProductRow, type SaleResult } from "@/lib/api";
+import {
+  fetchProducts,
+  createSale,
+  fetchCustomers,
+  ApiError,
+  type ProductRow,
+  type SaleResult,
+  type CustomerRow,
+} from "@/lib/api";
 import { getToken, getUser, clearSession, type SessionUser } from "@/lib/auth";
 import type { CreateSaleInput } from "@ferrestock/shared";
 
@@ -23,13 +31,19 @@ export default function PosPage() {
   const [results, setResults] = useState<ProductRow[]>([]);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [payment, setPayment] = useState<PaymentMethod>("CASH");
+  const [customers, setCustomers] = useState<CustomerRow[]>([]);
+  const [customerId, setCustomerId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<SaleResult | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!getToken()) router.replace("/login");
-    else setUser(getUser());
+    if (!getToken()) {
+      router.replace("/login");
+      return;
+    }
+    setUser(getUser());
+    fetchCustomers().then(setCustomers).catch(() => {});
   }, [router]);
 
   useEffect(() => {
@@ -82,12 +96,17 @@ export default function PosPage() {
 
   async function confirm() {
     if (cart.length === 0) return;
+    if (payment === "ACCOUNT" && !customerId) {
+      setError("Para una venta a cuenta corriente elegí un cliente.");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
       const input: CreateSaleInput = {
         paymentMethod: payment,
         discount: 0,
+        customerId: customerId || undefined,
         items: cart.map((l) => ({ productId: l.product.id, quantity: l.quantity, discount: 0 })),
       };
       const sale = await createSale(input);
@@ -235,6 +254,32 @@ export default function PosPage() {
                 {(Object.keys(PAYMENT_LABELS) as PaymentMethod[]).map((m) => (
                   <option key={m} value={m}>
                     {PAYMENT_LABELS[m]}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field">
+              <span className="label">
+                Cliente{" "}
+                {payment === "ACCOUNT" ? (
+                  <span style={{ color: "var(--danger)" }}>(obligatorio para cuenta corriente)</span>
+                ) : (
+                  <span className="muted">(opcional)</span>
+                )}
+              </span>
+              <select
+                className="input"
+                value={customerId}
+                onChange={(e) => setCustomerId(e.target.value)}
+              >
+                <option value="">— Sin cliente —</option>
+                {customers.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                    {Number(c.balance) > 0
+                      ? ` (debe $${Number(c.balance).toLocaleString("es-AR")})`
+                      : ""}
                   </option>
                 ))}
               </select>

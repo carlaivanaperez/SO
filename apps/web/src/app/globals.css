@@ -148,79 +148,50 @@ h3 {
   text-decoration: none;
 }
 
-.top-nav-links {
+.header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 14px;
 }
 
-/* Tab bar inferior (solo mobile) */
-.bottom-nav {
+/* Pestañas de sección (estilo MercadoLibre): texto + subrayado en la activa */
+.top-tabs {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  box-shadow: var(--shadow);
+}
+.top-tabs-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  padding: 0 12px;
+  scrollbar-width: none;
+}
+.top-tabs-inner::-webkit-scrollbar {
   display: none;
 }
-@media (max-width: 720px) {
-  .top-nav-links {
-    display: none;
-  }
-  .bottom-nav {
-    display: flex;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--header-bg);
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    z-index: 50;
-    padding-bottom: env(safe-area-inset-bottom);
-    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.25);
-  }
-  .bn-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    padding: 9px 2px 7px;
-    color: #b7c2ce;
-    text-decoration: none;
-    font-size: 11px;
-    font-weight: 600;
-  }
-  .bn-item.active {
-    color: var(--yellow);
-  }
-  .bn-icon {
-    font-size: 21px;
-    line-height: 1;
-  }
-  .bn-label {
-    line-height: 1;
-  }
-  body {
-    padding-bottom: 64px; /* espacio para el tab bar */
-  }
-}
-
-/* Ítems del menú como botones flotantes */
-.nav-btn {
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  color: #f0f2f5 !important;
-  font-weight: 600;
-  font-size: 14px;
-  transition: background 0.12s ease, transform 0.06s ease;
-}
-.nav-btn:hover {
-  background: var(--yellow);
-  border-color: var(--yellow);
-  color: #141414 !important;
+.tt-item {
+  flex: 0 0 auto;
+  padding: 13px 16px;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
   text-decoration: none;
 }
-.nav-btn:active {
-  transform: translateY(1px);
+.tt-item:hover {
+  color: var(--text);
+  text-decoration: none;
+}
+.tt-item.active {
+  color: var(--text);
+  border-bottom-color: var(--yellow);
 }
 .nav .user {
   color: #9fb2c6;
@@ -397,11 +368,12 @@ h3 {
     height: 40px;
     width: 40px;
   }
-  .nav {
-    gap: 12px;
-  }
-  .nav .user {
+  .header-right .user {
     display: none; /* ahorra espacio en pantallas chicas */
+  }
+  .tt-item {
+    font-size: 14px;
+    padding: 12px 14px;
   }
 }
 
@@ -504,7 +476,7 @@ h3 {
 /* ── Impresión (planillas, comprobantes) ─────────────────── */
 @media print {
   .app-header,
-  .bottom-nav,
+  .top-tabs,
   .no-print {
     display: none !important;
   }

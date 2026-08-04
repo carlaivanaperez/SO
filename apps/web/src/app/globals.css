@@ -190,6 +190,8 @@ h3 {
   display: none;
 }
 .tt-item {
+  position: relative;
+  z-index: 1;
   flex: 0 0 auto;
   padding: 13px 16px 14px;
   color: var(--muted);
@@ -197,25 +199,27 @@ h3 {
   font-size: 15px;
   white-space: nowrap;
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: color 0.2s ease;
 }
 .tt-item:hover {
   color: var(--text);
   text-decoration: none;
 }
 .tt-item.active {
-  color: var(--text);
+  color: #141414; /* texto oscuro sobre el amarillo */
 }
-/* Subrayado deslizante */
-.tt-underline {
+/* Recuadro amarillo deslizante que resalta la pestaña activa */
+.tt-pill {
   position: absolute;
-  bottom: 0;
-  height: 3px;
-  border-radius: 3px 3px 0 0;
+  z-index: 0;
   background: var(--yellow);
-  transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-    width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid #1b1b1b;
+  border-radius: 10px;
   pointer-events: none;
+  transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    top 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
 }
 .nav .user {
   color: #9fb2c6;

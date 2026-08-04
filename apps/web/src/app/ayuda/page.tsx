@@ -265,6 +265,11 @@ export default function HelpPage() {
           </li>
           <li>La pestaña <strong>“Ventas”</strong> es el historial completo, con filtros por fecha, medio de pago y producto.</li>
           <li>Entrando a una venta podés ver el detalle e <strong>imprimir</strong> el comprobante.</li>
+          <li>
+            Desde “Ventas”, el botón <strong>“Informe mensual”</strong> arma un resumen del mes
+            (ventas, facturación, ganancia, medios de pago y productos más vendidos) que podés{" "}
+            <strong>imprimir</strong> o guardar en PDF.
+          </li>
         </ul>
       ),
     },

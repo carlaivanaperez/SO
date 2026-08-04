@@ -192,6 +192,25 @@ export async function fetchMargins(): Promise<MarginRow[]> {
   return request<MarginRow[]>("/api/reports/margins");
 }
 
+export type MonthlyReport = {
+  month: string;
+  totals: {
+    count: number;
+    revenue: string;
+    tax: string;
+    profit: string;
+    profitPartial: boolean;
+    avgTicket: string;
+    payments: string;
+  };
+  byPayment: { method: string | null; count: number; total: string }[];
+  topProducts: { productId: string; name: string; sku: string; quantity: string; revenue: string }[];
+};
+
+export async function fetchMonthlyReport(month: string): Promise<MonthlyReport> {
+  return request<MonthlyReport>(`/api/reports/monthly?month=${encodeURIComponent(month)}`);
+}
+
 // ── Historial de ventas ──────────────────────────────────────
 export type SaleListRow = {
   id: string;

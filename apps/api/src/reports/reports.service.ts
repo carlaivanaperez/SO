@@ -111,6 +111,98 @@ export class ReportsService {
     };
   }
 
+  // Informe mensual: ventas, facturación, IVA, ganancia estimada, por medio de
+  // pago y productos más vendidos. `month` en formato "YYYY-MM" (hora Argentina).
+  async monthly(month: string) {
+    const parts = month.split("-");
+    const year = Number(parts[0]);
+    const monthNum = Number(parts[1]); // 1-12
+    const from = new Date(Date.UTC(year, monthNum - 1, 1) + AR_OFFSET_MS);
+    const to = new Date(Date.UTC(year, monthNum, 1) + AR_OFFSET_MS); // inicio del mes siguiente
+    const range = { gte: from, lt: to };
+
+    const [agg, byPayment, grouped, items, paymentsAgg] = await Promise.all([
+      this.prisma.sale.aggregate({
+        where: { status: SaleStatus.COMPLETED, createdAt: range },
+        _count: { _all: true },
+        _sum: { total: true, tax: true },
+      }),
+      this.prisma.sale.groupBy({
+        by: ["paymentMethod"],
+        where: { status: SaleStatus.COMPLETED, createdAt: range },
+        _count: { _all: true },
+        _sum: { total: true },
+      }),
+      this.prisma.saleItem.groupBy({
+        by: ["productId"],
+        where: { sale: { status: SaleStatus.COMPLETED, createdAt: range } },
+        _sum: { quantity: true, total: true },
+      }),
+      this.prisma.saleItem.findMany({
+        where: { sale: { status: SaleStatus.COMPLETED, createdAt: range } },
+        select: { quantity: true, total: true, product: { select: { costPrice: true, taxRate: true } } },
+      }),
+      // Cobranzas del mes (pagos recibidos a cuenta corriente).
+      this.prisma.customerPayment.aggregate({
+        where: { createdAt: range },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    // Ganancia estimada del mes (neto vs neto, costo actual del producto).
+    let profit = new Prisma.Decimal(0);
+    let itemsWithoutCost = 0;
+    for (const it of items) {
+      if (it.product.costPrice.lte(0)) {
+        itemsWithoutCost++;
+        continue;
+      }
+      const divisor = it.product.taxRate.div(100).plus(1);
+      profit = profit.plus(it.total.div(divisor).minus(it.product.costPrice.div(divisor).times(it.quantity)));
+    }
+
+    // Top 10 productos más vendidos (por facturación).
+    const topIds = [...grouped]
+      .sort((a, b) => Number(b._sum.total ?? 0) - Number(a._sum.total ?? 0))
+      .slice(0, 10);
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: topIds.map((g) => g.productId) } },
+      select: { id: true, name: true, sku: true },
+    });
+    const nameById = new Map(products.map((p) => [p.id, p]));
+    const topProducts = topIds.map((g) => ({
+      productId: g.productId,
+      name: nameById.get(g.productId)?.name ?? "—",
+      sku: nameById.get(g.productId)?.sku ?? "",
+      quantity: (g._sum.quantity ?? new Prisma.Decimal(0)).toString(),
+      revenue: (g._sum.total ?? new Prisma.Decimal(0)).toString(),
+    }));
+
+    const count = agg._count._all;
+    const revenue = agg._sum.total ?? new Prisma.Decimal(0);
+    const tax = agg._sum.tax ?? new Prisma.Decimal(0);
+    const avgTicket = count > 0 ? revenue.div(count) : new Prisma.Decimal(0);
+
+    return {
+      month,
+      totals: {
+        count,
+        revenue: revenue.toString(),
+        tax: tax.toString(),
+        profit: profit.toDecimalPlaces(2).toString(),
+        profitPartial: itemsWithoutCost > 0,
+        avgTicket: avgTicket.toDecimalPlaces(2).toString(),
+        payments: (paymentsAgg._sum.amount ?? new Prisma.Decimal(0)).toString(),
+      },
+      byPayment: byPayment.map((p) => ({
+        method: p.paymentMethod,
+        count: p._count._all,
+        total: (p._sum.total ?? new Prisma.Decimal(0)).toString(),
+      })),
+      topProducts,
+    };
+  }
+
   // Márgenes por producto: ganancia (neta) y % sobre cada producto activo.
   // Ordenado por menor margen primero, para detectar los que rinden poco.
   async margins() {

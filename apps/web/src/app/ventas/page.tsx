@@ -91,7 +91,12 @@ export default function SalesHistoryPage() {
     <>
       <AppHeader user={user} />
       <main className="container">
-        <h1>Historial de ventas</h1>
+        <div className="page-head">
+          <h1 style={{ margin: 0 }}>Historial de ventas</h1>
+          <Link href="/informe" className="btn btn-outline">
+            📄 Informe mensual
+          </Link>
+        </div>
 
         {/* Filtros */}
         <div className="card" style={{ marginBottom: 16 }}>

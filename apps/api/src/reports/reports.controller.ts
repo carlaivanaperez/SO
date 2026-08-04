@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import { BadRequestException, Controller, Get, Query, UseGuards } from "@nestjs/common";
 import { ReportsService } from "./reports.service";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { RolesGuard } from "../auth/roles.guard";
@@ -30,4 +30,22 @@ export class ReportsController {
   margins() {
     return this.reports.margins();
   }
+
+  // Informe mensual (facturación + ganancia): solo ADMIN/MANAGER.
+  // ?month=YYYY-MM (por defecto, el mes en curso en hora Argentina).
+  @Get("monthly")
+  @Roles("ADMIN", "MANAGER")
+  monthly(@Query("month") month?: string) {
+    const value = month ?? currentMonthAr();
+    if (!/^\d{4}-\d{2}$/.test(value)) {
+      throw new BadRequestException("El mes debe tener el formato YYYY-MM");
+    }
+    return this.reports.monthly(value);
+  }
+}
+
+// Mes en curso en hora Argentina (offset fijo -3h), formato "YYYY-MM".
+function currentMonthAr(): string {
+  const ar = new Date(Date.now() - 3 * 60 * 60 * 1000);
+  return `${ar.getUTCFullYear()}-${String(ar.getUTCMonth() + 1).padStart(2, "0")}`;
 }

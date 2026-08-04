@@ -13,14 +13,14 @@ export function TopTabs({ user }: { user: SessionUser | null }) {
     { href: "/pos", label: "Vender" },
     ...(manage ? [{ href: "/ventas", label: "Ventas" }] : []),
     { href: "/clientes", label: "Clientes" },
+    // Catálogo público (uso de todos): abre en otra pestaña para no cerrar la sesión.
+    { href: "/", label: "Catálogo ↗", external: true },
     ...(user?.role === "ADMIN"
       ? [
           { href: "/usuarios", label: "Equipo" },
           { href: "/configuracion", label: "Ajustes" },
         ]
       : []),
-    // Catálogo público: abre en otra pestaña para no cerrar la sesión del staff.
-    { href: "/", label: "Catálogo ↗", external: true },
     { href: "/ayuda", label: "Ayuda" },
   ];
   const isActive = (href: string) => path === href || path.startsWith(`${href}/`);

@@ -147,7 +147,7 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
         <img
           src="/logo-transparent.png"
           alt={store.storeName}
-          style={{ height: 200, width: 200, maxWidth: "80%", objectFit: "contain", display: "block" }}
+          style={{ height: 250, width: 250, maxWidth: "85%", objectFit: "contain", display: "block" }}
           onError={(e) => (e.currentTarget.style.display = "none")}
         />
         <div>

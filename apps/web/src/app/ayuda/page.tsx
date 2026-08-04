@@ -207,6 +207,34 @@ export default function HelpPage() {
       ),
     },
     {
+      emoji: "💰",
+      title: "Costo y ganancia (márgenes)",
+      audience: "manage",
+      body: (
+        <>
+          <p>
+            Al cargar o editar un producto, poné el <strong>precio de costo</strong> (como viene en
+            la factura del proveedor, con IVA) y el <strong>precio de venta</strong>. Ahí mismo ves
+            en vivo la <strong>ganancia</strong> y el <strong>margen %</strong>.
+          </p>
+          <ul>
+            <li>
+              La ganancia se calcula <strong>sin IVA</strong> en los dos lados (el IVA no es tuyo, va
+              a AFIP), así que es la que realmente te queda.
+            </li>
+            <li>
+              Si no sabés qué precio poner, escribí el <strong>margen que querés</strong> (ej: 40%) y
+              tocá <strong>“Sugerir precio”</strong>: te calcula el precio de venta.
+            </li>
+            <li>
+              En el catálogo, el botón <strong>“Márgenes”</strong> abre la lista de todos los
+              productos con su ganancia, con los de menor margen primero.
+            </li>
+          </ul>
+        </>
+      ),
+    },
+    {
       emoji: "🏷️",
       title: "Promociones",
       audience: "manage",

@@ -3,7 +3,9 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createProduct, updateProduct, ApiError, type ProductDetail } from "@/lib/api";
 import { clearSession } from "@/lib/auth";
-import type { ProductUnitDTO } from "@ferrestock/shared";
+import { computeMargin, priceFromMargin, type ProductUnitDTO } from "@ferrestock/shared";
+
+const money = (n: number) => `$${n.toLocaleString("es-AR", { maximumFractionDigits: 2 })}`;
 
 const UNITS: { value: ProductUnitDTO; label: string }[] = [
   { value: "UNIT", label: "Unidad" },
@@ -28,9 +30,24 @@ export function ProductForm({ initial }: { initial: ProductDetail | null }) {
   const [salePrice, setSalePrice] = useState(initial?.salePrice ?? "");
   const [taxRate, setTaxRate] = useState(initial?.taxRate ?? "21");
   const [active, setActive] = useState(initial?.active ?? true);
+  const [desiredMargin, setDesiredMargin] = useState("");
 
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Ganancia y margen (neto contra neto). Solo se muestra si hay costo y precio.
+  const cost = Number(costPrice);
+  const price = Number(salePrice);
+  const rate = Number(taxRate) || 0;
+  const showMargin = cost > 0 && price > 0;
+  const margin = showMargin ? computeMargin(cost, price, rate) : null;
+
+  function applyMarginSuggestion() {
+    const m = Number(desiredMargin);
+    if (!cost || !m || m <= 0 || m >= 100) return;
+    const suggested = priceFromMargin(cost, m);
+    if (suggested > 0) setSalePrice(String(suggested));
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -144,9 +161,73 @@ export function ProductForm({ initial }: { initial: ProductDetail | null }) {
         </Field>
       </div>
       <p className="muted" style={{ marginTop: -4, fontSize: 13 }}>
-        Poné el precio final que paga el cliente. El IVA ya viene incluido en ese precio; el % es
-        solo para desglosarlo en el comprobante.
+        Poné el precio final que paga el cliente y el costo como viene en la factura del proveedor
+        (ambos con IVA). El IVA se calcula solo; la ganancia se saca sin IVA en los dos.
       </p>
+
+      {/* Ganancia y margen en vivo */}
+      {margin && (
+        <div
+          className="card"
+          style={{ background: "var(--bg)", padding: 12, marginBottom: 12 }}
+        >
+          <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "baseline" }}>
+            <div>
+              <div className="muted" style={{ fontSize: 12 }}>Ganancia (sin IVA)</div>
+              <div
+                style={{
+                  fontSize: 20,
+                  fontWeight: 800,
+                  color: margin.profit >= 0 ? "var(--success)" : "var(--danger)",
+                }}
+              >
+                {money(margin.profit)}
+              </div>
+            </div>
+            <div>
+              <div className="muted" style={{ fontSize: 12 }}>Margen (sobre la venta)</div>
+              <div style={{ fontSize: 20, fontWeight: 800 }}>{margin.marginOnPrice}%</div>
+            </div>
+            <div>
+              <div className="muted" style={{ fontSize: 12 }}>Recargo (sobre el costo)</div>
+              <div style={{ fontSize: 16, fontWeight: 700 }}>{margin.markupOnCost}%</div>
+            </div>
+          </div>
+          {margin.profit < 0 && (
+            <p className="muted" style={{ margin: "8px 0 0", color: "var(--danger)", fontSize: 13 }}>
+              ⚠️ Estás vendiendo por debajo del costo.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Sugerir precio a partir del margen deseado */}
+      <div
+        style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 12 }}
+      >
+        <label className="field" style={{ marginBottom: 0, maxWidth: 220 }}>
+          <span className="label">¿Qué margen querés? (%)</span>
+          <input
+            className="input"
+            type="number"
+            min="0"
+            max="99"
+            step="0.1"
+            value={desiredMargin}
+            onChange={(e) => setDesiredMargin(e.target.value)}
+            placeholder="Ej: 40"
+          />
+        </label>
+        <button
+          type="button"
+          className="btn btn-outline"
+          onClick={applyMarginSuggestion}
+          disabled={!cost || !desiredMargin}
+          title="Calcula el precio de venta para ese margen (necesita el costo cargado)"
+        >
+          Sugerir precio
+        </button>
+      </div>
 
       {editing && (
         <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>

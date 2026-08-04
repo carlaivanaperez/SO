@@ -256,8 +256,12 @@ components y redirigen a `/login` ante un `401`. El logo va en
 
 Lo que **falta**, en orden sugerido:
 
-1. **Más reportes** (ventas por período, más vendidos, margen) y la app **mobile**
-   completa (hoy solo lista el catálogo). El dashboard base ya está.
+1. **Más reportes** (ventas por período, más vendidos) y la app **mobile**
+   completa (hoy solo lista el catálogo). El dashboard base ya está. **Margen/ganancia**
+   ya está: cálculo neto vs neto (costo y venta con IVA incluido) en
+   `packages/shared/src/margin.ts` (`computeMargin`, `priceFromMargin`), ganancia y
+   margen en vivo en `ProductForm` (+ "sugerir precio por margen"), y reporte
+   `/margenes` (solo ADMIN/MANAGER) vía `GET /api/reports/margins`.
 2. **Tests**: hay tests unitarios (Jest) de `sales.service` (totales/IVA,
    congelado de precio, descuento de stock) y `products.service` (ajuste de
    stock, historial de precios). Falta cubrir el **matching de WhatsApp** y sumar

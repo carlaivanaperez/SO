@@ -196,9 +196,14 @@ export default function DashboardPage() {
         <div className="page-head">
           <h2 style={{ margin: 0 }}>Catálogo y stock</h2>
           {manage && (
-            <Link href="/products/new" className="btn btn-primary">
-              + Nuevo producto
-            </Link>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Link href="/margenes" className="btn btn-outline">
+                Márgenes
+              </Link>
+              <Link href="/products/new" className="btn btn-primary">
+                + Nuevo producto
+              </Link>
+            </div>
           )}
         </div>
 

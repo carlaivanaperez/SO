@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Prisma, SaleStatus } from "@ferrestock/db";
+import { computeMargin } from "@ferrestock/shared";
 
 // Argentina no usa horario de verano: offset fijo -3h.
 const AR_OFFSET_MS = 3 * 60 * 60 * 1000;
@@ -78,6 +79,40 @@ export class ReportsService {
         itemCount: s._count.items,
       })),
     };
+  }
+
+  // Márgenes por producto: ganancia (neta) y % sobre cada producto activo.
+  // Ordenado por menor margen primero, para detectar los que rinden poco.
+  async margins() {
+    const products = await this.prisma.product.findMany({
+      where: { active: true },
+      select: { id: true, name: true, sku: true, costPrice: true, salePrice: true, taxRate: true },
+      orderBy: { name: "asc" },
+    });
+
+    return products
+      .map((p) => {
+        const cost = Number(p.costPrice);
+        const price = Number(p.salePrice);
+        const rate = Number(p.taxRate);
+        const m = computeMargin(cost, price, rate);
+        return {
+          id: p.id,
+          name: p.name,
+          sku: p.sku,
+          cost, // con IVA (como se carga)
+          price, // con IVA
+          profit: m.profit, // ganancia neta
+          marginOnPrice: m.marginOnPrice,
+          markupOnCost: m.markupOnCost,
+          hasCost: cost > 0,
+        };
+      })
+      .sort((a, b) => {
+        // Los que no tienen costo cargado van al final; el resto por menor margen.
+        if (a.hasCost !== b.hasCost) return a.hasCost ? -1 : 1;
+        return a.marginOnPrice - b.marginOnPrice;
+      });
   }
 
   // Planilla de compra: todos los productos activos bajo el mínimo, con la

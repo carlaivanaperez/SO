@@ -171,6 +171,22 @@ export async function fetchLowStock(): Promise<LowStockItem[]> {
   return request<LowStockItem[]>("/api/reports/low-stock");
 }
 
+export type MarginRow = {
+  id: string;
+  name: string;
+  sku: string;
+  cost: number;
+  price: number;
+  profit: number;
+  marginOnPrice: number;
+  markupOnCost: number;
+  hasCost: boolean;
+};
+
+export async function fetchMargins(): Promise<MarginRow[]> {
+  return request<MarginRow[]>("/api/reports/margins");
+}
+
 // ── Historial de ventas ──────────────────────────────────────
 export type SaleListRow = {
   id: string;

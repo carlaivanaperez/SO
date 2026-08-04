@@ -1,11 +1,13 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
 import { ReportsService } from "./reports.service";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { RolesGuard } from "../auth/roles.guard";
+import { Roles } from "../auth/roles.decorator";
 import { CurrentUser } from "../auth/current-user.decorator";
 import type { JwtPayload } from "@ferrestock/shared";
 
 @Controller("reports")
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ReportsController {
   constructor(private readonly reports: ReportsService) {}
 
@@ -20,5 +22,12 @@ export class ReportsController {
   @Get("low-stock")
   lowStock() {
     return this.reports.lowStock();
+  }
+
+  // Márgenes por producto (costo/ganancia): info sensible → solo ADMIN/MANAGER.
+  @Get("margins")
+  @Roles("ADMIN", "MANAGER")
+  margins() {
+    return this.reports.margins();
   }
 }

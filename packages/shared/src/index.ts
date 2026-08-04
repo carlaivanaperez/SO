@@ -4,5 +4,6 @@ export * from "./sale";
 export * from "./customer";
 export * from "./promotion";
 export * from "./finance";
+export * from "./margin";
 export * from "./whatsapp";
 export * from "./common";

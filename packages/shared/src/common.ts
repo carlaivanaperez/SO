@@ -44,6 +44,16 @@ export function whatsappGreeting(name: string): string {
   return `Hola ${firstName}, me comunico de la ferretería. `;
 }
 
+/**
+ * Mensaje precargado para recordarle a un cliente su saldo pendiente de cuenta
+ * corriente. `balance` es el saldo que debe (positivo).
+ */
+export function whatsappDebtMessage(name: string, balance: number): string {
+  const firstName = name.trim().split(/\s+/)[0] || name.trim();
+  const amount = balance.toLocaleString("es-AR");
+  return `Hola ${firstName}, te escribo de la ferretería. Te recordamos que tenés un saldo pendiente de $${amount} en tu cuenta. Cualquier cosa avisanos. ¡Gracias!`;
+}
+
 /** Paginación estándar para todos los listados. */
 export const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

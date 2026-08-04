@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { fetchCustomers, ApiError, type CustomerRow } from "@/lib/api";
 import { getToken, getUser, clearSession, canManage, type SessionUser } from "@/lib/auth";
-import { whatsappUrl, whatsappGreeting } from "@ferrestock/shared";
+import { whatsappUrl, whatsappGreeting, whatsappDebtMessage } from "@ferrestock/shared";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 const money = (v: string | number) => `$${Number(v).toLocaleString("es-AR")}`;
@@ -15,6 +15,7 @@ export default function CustomersPage() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [rows, setRows] = useState<CustomerRow[]>([]);
   const [search, setSearch] = useState("");
+  const [onlyDebt, setOnlyDebt] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function CustomersPage() {
   }, [search, router]);
 
   const manage = canManage(user);
+  const visible = onlyDebt ? rows.filter((c) => Number(c.balance) > 0) : rows;
 
   return (
     <>
@@ -60,13 +62,33 @@ export default function CustomersPage() {
           )}
         </div>
 
-        <input
-          className="input"
-          placeholder="🔎 Buscar por nombre, teléfono o CUIT/DNI…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ marginBottom: 16 }}
-        />
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            alignItems: "center",
+            flexWrap: "wrap",
+            marginBottom: 16,
+          }}
+        >
+          <input
+            className="input"
+            placeholder="🔎 Buscar por nombre, teléfono o CUIT/DNI…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ flex: 1, minWidth: 220, marginBottom: 0 }}
+          />
+          <label
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer" }}
+          >
+            <input
+              type="checkbox"
+              checked={onlyDebt}
+              onChange={(e) => setOnlyDebt(e.target.checked)}
+            />
+            Solo con deuda
+          </label>
+        </div>
 
         {error && <p className="alert alert-error">⚠️ {error}</p>}
 
@@ -81,8 +103,11 @@ export default function CustomersPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((c) => {
+              {visible.map((c) => {
                 const bal = Number(c.balance);
+                // Si el cliente debe, el mensaje precargado recuerda la deuda.
+                const waText =
+                  bal > 0 ? whatsappDebtMessage(c.name, bal) : whatsappGreeting(c.name);
                 return (
                   <tr key={c.id}>
                     <td>
@@ -91,11 +116,11 @@ export default function CustomersPage() {
                     <td>
                       {whatsappUrl(c.phone) ? (
                         <a
-                          href={whatsappUrl(c.phone, whatsappGreeting(c.name))!}
+                          href={whatsappUrl(c.phone, waText)!}
                           target="_blank"
                           rel="noopener noreferrer"
-                          title="Escribirle por WhatsApp"
-                          aria-label="Escribirle por WhatsApp"
+                          title={bal > 0 ? "Recordar deuda por WhatsApp" : "Escribirle por WhatsApp"}
+                          aria-label={bal > 0 ? "Recordar deuda por WhatsApp" : "Escribirle por WhatsApp"}
                           style={{
                             display: "inline-flex",
                             alignItems: "center",
@@ -126,10 +151,10 @@ export default function CustomersPage() {
                   </tr>
                 );
               })}
-              {rows.length === 0 && !error && (
+              {visible.length === 0 && !error && (
                 <tr>
                   <td colSpan={4} className="muted" style={{ padding: 24 }}>
-                    No hay clientes todavía.
+                    {onlyDebt ? "Ningún cliente tiene deuda. 👍" : "No hay clientes todavía."}
                   </td>
                 </tr>
               )}

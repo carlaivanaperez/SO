@@ -11,7 +11,7 @@ import {
   type CustomerDetail,
 } from "@/lib/api";
 import { getToken, getUser, canManage, clearSession, type SessionUser } from "@/lib/auth";
-import { whatsappUrl, whatsappGreeting } from "@ferrestock/shared";
+import { whatsappUrl, whatsappGreeting, whatsappDebtMessage } from "@ferrestock/shared";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 const PAYMENTS = [
@@ -168,6 +168,19 @@ export default function CustomerDetailPage() {
                     ? `A favor ${money(-balance)}`
                     : "Al día ✓"}
               </div>
+              {balance > 0 && whatsappUrl(customer.phone) && (
+                <a
+                  href={whatsappUrl(customer.phone, whatsappDebtMessage(customer.name, balance))!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-success"
+                  title="Recordar deuda por WhatsApp"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 12 }}
+                >
+                  <WhatsAppIcon size={18} />
+                  Recordar deuda por WhatsApp
+                </a>
+              )}
             </div>
 
             <div className="grid-2">

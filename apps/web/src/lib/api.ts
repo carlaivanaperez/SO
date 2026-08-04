@@ -19,6 +19,8 @@ import type {
   CreatePromotionInput,
   FinanceConfig,
   UpdateFinanceConfigInput,
+  StoreSettings,
+  UpdateStoreSettingsInput,
 } from "@ferrestock/shared";
 import { getToken } from "./auth";
 
@@ -416,6 +418,20 @@ export async function fetchFinanceConfig(): Promise<FinanceConfig> {
 
 export async function updateFinanceConfig(input: UpdateFinanceConfigInput): Promise<FinanceConfig> {
   return request<FinanceConfig>("/api/finance/config", {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+// ── Datos del negocio (para el catálogo público) ─────────────
+export type { StoreSettings } from "@ferrestock/shared";
+
+export async function fetchStoreSettings(): Promise<StoreSettings> {
+  return request<StoreSettings>("/api/settings/store");
+}
+
+export async function updateStoreSettings(input: UpdateStoreSettingsInput): Promise<StoreSettings> {
+  return request<StoreSettings>("/api/settings/store", {
     method: "PATCH",
     body: JSON.stringify(input),
   });

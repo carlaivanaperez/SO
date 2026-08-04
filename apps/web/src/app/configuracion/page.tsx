@@ -1,8 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
-import { fetchFinanceConfig, updateFinanceConfig, ApiError } from "@/lib/api";
+import {
+  fetchFinanceConfig,
+  updateFinanceConfig,
+  fetchStoreSettings,
+  updateStoreSettings,
+  ApiError,
+} from "@/lib/api";
 import { getToken, getUser, clearSession, type SessionUser } from "@/lib/auth";
 
 type Row = { installments: string; surchargePercent: string };
@@ -15,6 +22,12 @@ export default function ConfigPage() {
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Datos del negocio (para el catálogo público).
+  const [storeName, setStoreName] = useState("");
+  const [storePhone, setStorePhone] = useState("");
+  const [storeSaving, setStoreSaving] = useState(false);
+  const [storeMsg, setStoreMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
     if (!getToken()) {
@@ -46,7 +59,39 @@ export default function ConfigPage() {
           setError(e instanceof Error ? e.message : "No se pudo cargar la configuración");
         }
       });
+    fetchStoreSettings()
+      .then((s) => {
+        setStoreName(s.storeName);
+        setStorePhone(s.whatsappPhone ?? "");
+      })
+      .catch(() => {});
   }, [router]);
+
+  async function saveStore() {
+    setStoreMsg(null);
+    if (!storeName.trim()) {
+      setStoreMsg({ ok: false, text: "El nombre del negocio no puede estar vacío." });
+      return;
+    }
+    setStoreSaving(true);
+    try {
+      const s = await updateStoreSettings({
+        storeName: storeName.trim(),
+        whatsappPhone: storePhone.trim() || null,
+      });
+      setStorePhone(s.whatsappPhone ?? "");
+      setStoreMsg({ ok: true, text: "Datos del negocio guardados." });
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) {
+        clearSession();
+        router.replace("/login");
+      } else {
+        setStoreMsg({ ok: false, text: e instanceof Error ? e.message : "No se pudo guardar" });
+      }
+    } finally {
+      setStoreSaving(false);
+    }
+  }
 
   function setRow(i: number, patch: Partial<Row>) {
     setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
@@ -103,7 +148,50 @@ export default function ConfigPage() {
     <>
       <AppHeader user={user} />
       <main className="container" style={{ maxWidth: 720 }}>
-        <h1>Configuración de cuenta corriente</h1>
+        <h1>Configuración</h1>
+
+        {/* Datos del negocio (catálogo público) */}
+        <section className="card" style={{ marginTop: 8 }}>
+          <h2 style={{ fontSize: 16 }}>Datos del negocio</h2>
+          <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+            Se usan en el <strong>catálogo público</strong> (la página que ven los clientes, sin
+            login). El WhatsApp es el número al que llegan los pedidos y consultas.
+          </p>
+          <label className="field">
+            <span className="label">Nombre del negocio</span>
+            <input
+              className="input"
+              value={storeName}
+              onChange={(e) => setStoreName(e.target.value)}
+              maxLength={80}
+            />
+          </label>
+          <label className="field">
+            <span className="label">WhatsApp del negocio</span>
+            <input
+              className="input"
+              value={storePhone}
+              onChange={(e) => setStorePhone(e.target.value)}
+              placeholder="Ej: 3624721664"
+              inputMode="tel"
+            />
+          </label>
+          {storeMsg && (
+            <p className={`alert ${storeMsg.ok ? "alert-success" : "alert-error"}`}>
+              {storeMsg.ok ? "✅" : "⚠️"} {storeMsg.text}
+            </p>
+          )}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button onClick={saveStore} disabled={storeSaving} className="btn btn-primary">
+              {storeSaving ? "Guardando…" : "Guardar datos del negocio"}
+            </button>
+            <Link href="/catalogo" target="_blank" className="btn btn-outline">
+              Ver catálogo público ↗
+            </Link>
+          </div>
+        </section>
+
+        <h1 style={{ marginTop: 28 }}>Cuenta corriente</h1>
         <p className="muted">
           Definí el recargo por financiar en cuotas y el interés por mora (atraso). Estos valores se
           usan al vender a cuenta corriente.

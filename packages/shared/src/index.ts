@@ -5,5 +5,6 @@ export * from "./customer";
 export * from "./promotion";
 export * from "./finance";
 export * from "./margin";
+export * from "./store";
 export * from "./whatsapp";
 export * from "./common";

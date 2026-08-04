@@ -158,6 +158,9 @@ Es la **fuente de verdad**. Entidades principales:
   mora (%/día). Se crean con valores por defecto de forma perezosa (`FinanceService.getConfig`),
   así funciona en prod sin seed. Endpoints en `apps/api/src/finance/` (`GET /api/finance/config`
   abierto; `PATCH` solo ADMIN). Helpers de cálculo puros en `packages/shared/src/finance.ts`.
+- **StoreSettings** (fila única id=1) — datos del negocio (nombre + WhatsApp E.164),
+  editables por ADMIN en `/configuracion`. Los usa el **catálogo público**. Se crea
+  con defaults de forma perezosa (`SettingsService.getStore`).
 - **WhatsAppQuery** — registro de cada consulta entrante por WhatsApp (auditoría y métricas de demanda).
 
 **Invariante crítico:** todo cambio de stock se hace en una **transacción** que
@@ -273,7 +276,12 @@ Lo que **falta**, en orden sugerido:
    tests de integración/e2e. Los tests mockean Prisma (no requieren base). Se
    corren con `pnpm test`.
 3. **Matching de productos en WhatsApp**: hoy es `contains` simple; mejorar con
-   full-text search de Postgres o similar.
+   full-text search de Postgres o similar. **Catálogo público** ya está: página
+   `/catalogo` (server component, sin login, SEO) que consume `GET /api/public/catalog`
+   (endpoint abierto, `apps/api/src/public/`) — solo expone nombre, marca, precio
+   final, "Disponible/Sin stock" y promo; nunca costo/margen/stock exacto. Cada
+   producto tiene botón "Reservar/pedir por WhatsApp" al número del negocio
+   (StoreSettings). Datos del negocio editables en `/configuracion`.
 4. **Guía de uso** in-app ya está: pantalla `/ayuda` (`app/ayuda/page.tsx`),
    didáctica y para público no técnico, con temas desplegables (`<details>`)
    filtrados por rol (el vendedor no ve stock/equipo/config). Pestaña "Ayuda"

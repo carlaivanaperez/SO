@@ -290,6 +290,34 @@ export default function HelpPage() {
       ),
     },
     {
+      emoji: "🌎",
+      title: "Catálogo público (para clientes)",
+      audience: "admin",
+      body: (
+        <>
+          <p>
+            Hay una página <strong>pública, sin login</strong>, donde los clientes ven tus productos
+            con precio y disponibilidad, y piden por WhatsApp. La dirección es tu sitio + <code>/catalogo</code>.
+          </p>
+          <ol>
+            <li>
+              En <strong>“Ajustes” → “Datos del negocio”</strong> cargá el <strong>nombre</strong> y el{" "}
+              <strong>WhatsApp del negocio</strong> (ahí llegan los pedidos).
+            </li>
+            <li>
+              Tocá <strong>“Ver catálogo público”</strong> para verlo y compartir el link (redes,
+              estado de WhatsApp, etc.).
+            </li>
+          </ol>
+          <p className="muted">
+            El cliente ve nombre, precio y si <strong>hay stock o no</strong> — nunca ve el costo, el
+            margen ni la cantidad exacta. Cada producto tiene un botón para <strong>reservar/pedir por
+            WhatsApp</strong>.
+          </p>
+        </>
+      ),
+    },
+    {
       emoji: "⚙️",
       title: "Configurar cuotas y mora",
       audience: "admin",

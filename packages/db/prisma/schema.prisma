@@ -318,6 +318,17 @@ model InstallmentOption {
   @@map("installment_options")
 }
 
+// Datos del negocio (fila única id=1). Editable por ADMIN. Los usa el catálogo
+// público: nombre a mostrar y WhatsApp para "reservar/pedir" (E.164).
+model StoreSettings {
+  id            Int      @id @default(1)
+  storeName     String   @default("El Almacén del Ferretero") @map("store_name")
+  whatsappPhone String?  @map("whatsapp_phone") // E.164, ej: +5493624721664
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("store_settings")
+}
+
 model SaleItem {
   id        String  @id @default(cuid())
   saleId    String  @map("sale_id")

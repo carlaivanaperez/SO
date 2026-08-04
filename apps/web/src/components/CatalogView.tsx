@@ -137,27 +137,12 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
           flexWrap: "wrap",
         }}
       >
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 16,
-            padding: 12,
-            flexShrink: 0,
-            boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
-            lineHeight: 0,
-          }}
-        >
-          <img
-            src="/logo.png"
-            alt={store.storeName}
-            style={{ height: 110, width: 110, objectFit: "contain", display: "block" }}
-            onError={(e) => {
-              // Si no hay logo, ocultamos el recuadro blanco entero.
-              const box = e.currentTarget.parentElement;
-              if (box) box.style.display = "none";
-            }}
-          />
-        </div>
+        <img
+          src="/logo-transparent.png"
+          alt={store.storeName}
+          style={{ height: 120, width: 120, objectFit: "contain", flexShrink: 0, display: "block" }}
+          onError={(e) => (e.currentTarget.style.display = "none")}
+        />
         <div style={{ flex: 1, minWidth: 200 }}>
           <h1 style={{ margin: 0, fontSize: 30 }}>{store.storeName}</h1>
           <p style={{ margin: "6px 0 0", fontWeight: 600, fontSize: 16 }}>

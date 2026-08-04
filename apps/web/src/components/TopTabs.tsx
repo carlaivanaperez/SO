@@ -19,6 +19,7 @@ export function TopTabs({ user }: { user: SessionUser | null }) {
           { href: "/configuracion", label: "Ajustes" },
         ]
       : []),
+    { href: "/ayuda", label: "Ayuda" },
   ];
   const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 

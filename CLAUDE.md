@@ -262,10 +262,12 @@ Lo que **falta**, en orden sugerido:
    corren con `pnpm test`.
 3. **Matching de productos en WhatsApp**: hoy es `contains` simple; mejorar con
    full-text search de Postgres o similar.
-4. **Guía de uso** in-app (didáctica, público no técnico). **Roles y usuarios**
-   ya están: pantalla `/usuarios` (solo ADMIN) para crear staff y asignar rol;
-   nombres de rol y descripciones en `roleLabels`/`roleDescriptions` (shared).
-   **Clientes y cuentas corrientes** también.
+4. **Guía de uso** in-app ya está: pantalla `/ayuda` (`app/ayuda/page.tsx`),
+   didáctica y para público no técnico, con temas desplegables (`<details>`)
+   filtrados por rol (el vendedor no ve stock/equipo/config). Pestaña "Ayuda"
+   visible para todos. **Roles y usuarios** también: pantalla `/usuarios` (solo
+   ADMIN) para crear staff y asignar rol; nombres/descripciones en
+   `roleLabels`/`roleDescriptions` (shared). **Clientes y cuentas corrientes** también.
 5. **Comprobante por WhatsApp** (imprimir ya está en `/ventas/[id]`). El
    **historial de ventas** con filtros ya está hecho.
 6. **CI**: sin pipeline de tests automáticos aún (el deploy sí está, §12).

@@ -8,7 +8,7 @@ import { canManage, type SessionUser } from "@/lib/auth";
 export function TopTabs({ user }: { user: SessionUser | null }) {
   const path = usePathname();
   const manage = canManage(user);
-  const tabs = [
+  const tabs: { href: string; label: string; external?: boolean }[] = [
     { href: "/panel", label: "Panel" },
     { href: "/pos", label: "Vender" },
     ...(manage ? [{ href: "/ventas", label: "Ventas" }] : []),
@@ -19,6 +19,8 @@ export function TopTabs({ user }: { user: SessionUser | null }) {
           { href: "/configuracion", label: "Ajustes" },
         ]
       : []),
+    // Catálogo público: abre en otra pestaña para no cerrar la sesión del staff.
+    { href: "/", label: "Catálogo ↗", external: true },
     { href: "/ayuda", label: "Ayuda" },
   ];
   const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
@@ -26,11 +28,23 @@ export function TopTabs({ user }: { user: SessionUser | null }) {
   return (
     <div className="top-tabs">
       <div className="top-tabs-inner">
-        {tabs.map((t) => (
-          <Link key={t.href} href={t.href} className={`tt-item ${isActive(t.href) ? "active" : ""}`}>
-            {t.label}
-          </Link>
-        ))}
+        {tabs.map((t) =>
+          t.external ? (
+            <a
+              key={t.label}
+              href={t.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="tt-item"
+            >
+              {t.label}
+            </a>
+          ) : (
+            <Link key={t.href} href={t.href} className={`tt-item ${isActive(t.href) ? "active" : ""}`}>
+              {t.label}
+            </Link>
+          )
+        )}
       </div>
     </div>
   );

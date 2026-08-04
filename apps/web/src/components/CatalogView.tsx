@@ -151,7 +151,15 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
           onError={(e) => (e.currentTarget.style.display = "none")}
         />
         <div>
-          <p style={{ margin: 0, fontWeight: 700, fontSize: 18 }}>
+          <p
+            style={{
+              margin: 0,
+              fontWeight: 600,
+              fontSize: 24,
+              fontFamily:
+                '"Segoe Script", "Bradley Hand", "Snell Roundhand", "Brush Script MT", cursive',
+            }}
+          >
             Armá tu pedido y envialo por WhatsApp. 🧰
           </p>
           {store.address && (

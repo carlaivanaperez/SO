@@ -149,6 +149,12 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
           <p style={{ margin: "6px 0 0", fontWeight: 600, fontSize: 16 }}>
             Armá tu pedido y envialo por WhatsApp. 🧰
           </p>
+          {store.address && (
+            <div style={{ fontSize: 13, marginTop: 8 }}>📍 {store.address}</div>
+          )}
+          {store.hours && (
+            <div style={{ fontSize: 13, marginTop: 2, whiteSpace: "pre-line" }}>🕒 {store.hours}</div>
+          )}
         </div>
       </header>
 
@@ -199,24 +205,6 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
       <p className="muted" style={{ fontSize: 12, marginTop: 8, textAlign: "center" }}>
         Los precios incluyen IVA. La disponibilidad puede variar; confirmá por WhatsApp.
       </p>
-
-      {/* Pie: datos del negocio (dirección y horarios) */}
-      {(store.address || store.hours) && (
-        <footer
-          className="card"
-          style={{ marginTop: 20, textAlign: "center", background: "var(--bg)" }}
-        >
-          <strong style={{ display: "block", marginBottom: 6 }}>{store.storeName}</strong>
-          {store.address && (
-            <div className="muted" style={{ fontSize: 14 }}>📍 {store.address}</div>
-          )}
-          {store.hours && (
-            <div className="muted" style={{ fontSize: 14, whiteSpace: "pre-line", marginTop: 4 }}>
-              🕒 {store.hours}
-            </div>
-          )}
-        </footer>
-      )}
 
       {/* Barra flotante del pedido */}
       {count > 0 && (

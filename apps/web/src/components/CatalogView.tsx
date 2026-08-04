@@ -137,15 +137,20 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
           flexWrap: "wrap",
         }}
       >
+        {/* Nombre del negocio para buscadores/lectores de pantalla (el logo ya lo muestra) */}
+        <h1
+          style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}
+        >
+          {store.storeName}
+        </h1>
         <img
           src="/logo-transparent.png"
           alt={store.storeName}
-          style={{ height: 120, width: 120, objectFit: "contain", flexShrink: 0, display: "block" }}
+          style={{ height: 170, width: 170, objectFit: "contain", flexShrink: 0, display: "block" }}
           onError={(e) => (e.currentTarget.style.display = "none")}
         />
         <div style={{ flex: 1, minWidth: 200 }}>
-          <h1 style={{ margin: 0, fontSize: 30 }}>{store.storeName}</h1>
-          <p style={{ margin: "6px 0 0", fontWeight: 600, fontSize: 16 }}>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: 18 }}>
             Armá tu pedido y envialo por WhatsApp. 🧰
           </p>
           {store.address && (

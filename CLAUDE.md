@@ -166,6 +166,13 @@ Es la **fuente de verdad**. Entidades principales:
   crea con defaults de forma perezosa (`SettingsService.getStore`).
 - **WhatsAppQuery** — registro de cada consulta entrante por WhatsApp (auditoría y métricas de demanda).
 
+**Importación masiva:** `POST /api/products/import` (ADMIN/MANAGER,
+`products.service.importProducts`) crea/actualiza productos por SKU desde un CSV y,
+si la fila trae `stock`, lo fija con un movimiento de ajuste. El CSV se parsea en el
+**front** (`app/products/import/page.tsx`: detecta `,`/`;`, mapea encabezados en
+español, números es-AR, unidades) y manda filas ya validadas; hay ejemplo descargable.
+Rubros por nombre (find-or-create). Botón "Importar" en el catálogo del panel.
+
 **Invariante crítico:** todo cambio de stock se hace en una **transacción** que
 crea un `StockMovement` **y** actualiza el `StockItem` juntos. Nunca modifiques
 `StockItem.quantity` sin su movimiento (ver `products.service.ts:adjustStock` y

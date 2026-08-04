@@ -215,6 +215,9 @@ export default function DashboardPage() {
               <Link href="/margenes" className="btn btn-outline">
                 Márgenes
               </Link>
+              <Link href="/products/import" className="btn btn-outline">
+                Importar
+              </Link>
               <Link href="/products/new" className="btn btn-primary">
                 + Nuevo producto
               </Link>

@@ -18,10 +18,12 @@ import {
   createProductSchema,
   updateProductSchema,
   stockAdjustmentSchema,
+  importProductsSchema,
   paginationSchema,
   type CreateProductInput,
   type UpdateProductInput,
   type StockAdjustmentInput,
+  type ImportProductsInput,
   type Pagination,
   type JwtPayload,
 } from "@ferrestock/shared";
@@ -56,6 +58,16 @@ export class ProductsController {
     @Body(new ZodValidationPipe(updateProductSchema)) dto: UpdateProductInput
   ) {
     return this.products.update(id, dto);
+  }
+
+  // Importación masiva de productos (CSV/Excel) → solo ADMIN/MANAGER.
+  @Post("import")
+  @Roles("ADMIN", "MANAGER")
+  import(
+    @Body(new ZodValidationPipe(importProductsSchema)) dto: ImportProductsInput,
+    @CurrentUser() user: JwtPayload
+  ) {
+    return this.products.importProducts(dto, user.sub);
   }
 
   @Post(":id/stock")

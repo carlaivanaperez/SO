@@ -11,6 +11,8 @@ import type {
   CreateProductInput,
   UpdateProductInput,
   StockAdjustmentInput,
+  ImportProductRow,
+  ImportResult,
   ProductUnitDTO,
   CreateCustomerInput,
   UpdateCustomerInput,
@@ -129,6 +131,15 @@ export async function updateProduct(
   return request<ProductDetail>(`/api/products/${id}`, {
     method: "PATCH",
     body: JSON.stringify(input),
+  });
+}
+
+export async function importProducts(
+  items: ImportProductRow[]
+): Promise<ImportResult> {
+  return request<ImportResult>("/api/products/import", {
+    method: "POST",
+    body: JSON.stringify({ items }),
   });
 }
 

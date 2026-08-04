@@ -197,6 +197,11 @@ export default function HelpPage() {
             <li>Para corregir una cantidad, tocá <strong>“Stock”</strong> en la fila del producto.</li>
             <li>Cargá el ajuste (entrada o salida) y el motivo. Queda registrado quién y cuándo.</li>
           </ol>
+          <p className="muted">
+            ¿Tenés muchos productos en una planilla? Usá <strong>“Importar”</strong> (en el catálogo):
+            bajás un archivo de ejemplo, lo completás en Excel y lo subís. Carga todo de una (crea o
+            actualiza por código, y podés incluir el stock).
+          </p>
           <p className="muted">Nunca hace falta “tocar” el número a mano: siempre cargás un movimiento y el sistema lleva la cuenta.</p>
         </>
       ),

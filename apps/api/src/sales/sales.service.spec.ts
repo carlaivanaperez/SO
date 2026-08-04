@@ -16,9 +16,12 @@ function setup(opts: {
   stock?: { productId: string; quantity: Prisma.Decimal }[];
 }) {
   const tx = {
-    sale: { create: jest.fn().mockResolvedValue({ id: "sale_1", items: [] }) },
+    sale: {
+      create: jest.fn().mockResolvedValue({ id: "sale_1", items: [], createdAt: new Date("2026-01-15T12:00:00Z") }),
+    },
     stockMovement: { create: jest.fn().mockResolvedValue({}) },
     stockItem: { upsert: jest.fn().mockResolvedValue({}) },
+    installment: { createMany: jest.fn().mockResolvedValue({}) },
   };
   // Por defecto: stock abundante (1000) para cada producto, así las ventas pasan.
   const stock =
@@ -33,7 +36,17 @@ function setup(opts: {
     stockItem: { findMany: jest.fn().mockResolvedValue(stock) },
     $transaction: jest.fn((cb: (t: typeof tx) => unknown) => cb(tx)),
   };
-  const service = new SalesService(prisma as never);
+  // Finance mock: escala con 3 cuotas al 10% de recargo y mora 0,3%/día.
+  const finance = {
+    getConfig: jest.fn().mockResolvedValue({
+      lateFeeDailyPercent: 0.3,
+      options: [
+        { installments: 1, surchargePercent: 0 },
+        { installments: 3, surchargePercent: 10 },
+      ],
+    }),
+  };
+  const service = new SalesService(prisma as never, finance as never);
   return { service, prisma, tx };
 }
 
@@ -41,6 +54,7 @@ const baseInput = (items: CreateSaleInput["items"], discount = 0): CreateSaleInp
   paymentMethod: "CASH",
   discount,
   items,
+  applyFinancingSurcharge: false,
 });
 
 describe("SalesService.create", () => {
@@ -123,5 +137,55 @@ describe("SalesService.create", () => {
     await expect(
       service.create(baseInput([{ productId: "p1", quantity: 5, discount: 0 }]), "u1")
     ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it("cuenta corriente en cuotas con recargo: suma el recargo al total y genera el cronograma", async () => {
+    const { service, tx } = setup({ products: [product("p1", "100", "0")] }); // sin IVA para claridad
+
+    // total base = 100; 3 cuotas con 10% de recargo => total 110, cuotas de ~36.67.
+    await service.create(
+      {
+        paymentMethod: "ACCOUNT",
+        customerId: "clzcustomer000000000000000",
+        discount: 0,
+        items: [{ productId: "p1", quantity: 1, discount: 0 }],
+        installments: 3,
+        applyFinancingSurcharge: true,
+      },
+      "u1"
+    );
+
+    const data = tx.sale.create.mock.calls[0][0].data;
+    expect(data.total.toString()).toBe("110");
+    expect(data.installmentsCount).toBe(3);
+    expect(data.financingSurcharge.toString()).toBe("10");
+
+    // Cronograma: 3 cuotas que suman 110 (la última absorbe el redondeo).
+    const rows = tx.installment.createMany.mock.calls[0][0].data;
+    expect(rows).toHaveLength(3);
+    const sum = rows.reduce((s: number, r: { amount: Prisma.Decimal }) => s + Number(r.amount), 0);
+    expect(sum).toBeCloseTo(110, 2);
+    expect(rows.map((r: { number: number }) => r.number)).toEqual([1, 2, 3]);
+  });
+
+  it("cuenta corriente en cuotas SIN aplicar recargo: divide el total sin sumar nada", async () => {
+    const { service, tx } = setup({ products: [product("p1", "100", "0")] });
+
+    await service.create(
+      {
+        paymentMethod: "ACCOUNT",
+        customerId: "clzcustomer000000000000000",
+        discount: 0,
+        items: [{ productId: "p1", quantity: 1, discount: 0 }],
+        installments: 3,
+        applyFinancingSurcharge: false,
+      },
+      "u1"
+    );
+
+    const data = tx.sale.create.mock.calls[0][0].data;
+    expect(data.total.toString()).toBe("100");
+    expect(data.financingSurcharge.toString()).toBe("0");
+    expect(tx.installment.createMany.mock.calls[0][0].data).toHaveLength(3);
   });
 });

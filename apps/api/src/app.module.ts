@@ -8,6 +8,7 @@ import { WhatsappModule } from "./whatsapp/whatsapp.module";
 import { ReportsModule } from "./reports/reports.module";
 import { CustomersModule } from "./customers/customers.module";
 import { PromotionsModule } from "./promotions/promotions.module";
+import { FinanceModule } from "./finance/finance.module";
 import { HealthController } from "./health.controller";
 
 @Module({
@@ -21,6 +22,7 @@ import { HealthController } from "./health.controller";
     ReportsModule,
     CustomersModule,
     PromotionsModule,
+    FinanceModule,
   ],
   controllers: [HealthController],
 })

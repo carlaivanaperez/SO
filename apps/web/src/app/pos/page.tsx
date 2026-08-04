@@ -7,14 +7,22 @@ import {
   createSale,
   fetchCustomers,
   fetchActivePromotions,
+  fetchFinanceConfig,
   ApiError,
   type ProductRow,
   type SaleResult,
   type CustomerRow,
   type ActivePromotion,
+  type FinanceConfig,
 } from "@/lib/api";
 import { getToken, getUser, clearSession, type SessionUser } from "@/lib/auth";
-import { promoLineDiscount, promoAppliesToPayment, type CreateSaleInput } from "@ferrestock/shared";
+import {
+  promoLineDiscount,
+  promoAppliesToPayment,
+  surchargeForInstallments,
+  splitInstallmentAmounts,
+  type CreateSaleInput,
+} from "@ferrestock/shared";
 import { CustomerPicker } from "@/components/CustomerPicker";
 
 type CartLine = { product: ProductRow; quantity: number };
@@ -37,6 +45,11 @@ export default function PosPage() {
   const [customers, setCustomers] = useState<CustomerRow[]>([]);
   const [customerId, setCustomerId] = useState("");
   const [promos, setPromos] = useState<Record<string, ActivePromotion>>({});
+  // Financiación en cuotas (solo cuenta corriente).
+  const [financeConfig, setFinanceConfig] = useState<FinanceConfig | null>(null);
+  const [financed, setFinanced] = useState(false);
+  const [installments, setInstallments] = useState(1);
+  const [applySurcharge, setApplySurcharge] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<SaleResult | null>(null);
   const [saving, setSaving] = useState(false);
@@ -50,6 +63,12 @@ export default function PosPage() {
     fetchCustomers().then(setCustomers).catch(() => {});
     fetchActivePromotions()
       .then((list) => setPromos(Object.fromEntries(list.map((p) => [p.productId, p]))))
+      .catch(() => {});
+    fetchFinanceConfig()
+      .then((cfg) => {
+        setFinanceConfig(cfg);
+        if (cfg.options[0]) setInstallments(cfg.options[0].installments);
+      })
       .catch(() => {});
   }, [router]);
 
@@ -125,6 +144,15 @@ export default function PosPage() {
     [cart, promos, payment]
   );
 
+  // Preview de financiación (estimado; el total real lo calcula la API con IVA).
+  const surchargePercent =
+    financed && applySurcharge && financeConfig
+      ? surchargeForInstallments(financeConfig.options, installments) ?? 0
+      : 0;
+  const financedTotal = Math.round(total * (1 + surchargePercent / 100) * 100) / 100;
+  const perInstallment =
+    financed && installments > 0 ? splitInstallmentAmounts(financedTotal, installments) : [];
+
   async function confirm() {
     if (cart.length === 0) return;
     if (payment === "ACCOUNT" && !customerId) {
@@ -134,10 +162,13 @@ export default function PosPage() {
     setSaving(true);
     setError(null);
     try {
+      const useFinancing = payment === "ACCOUNT" && financed;
       const input: CreateSaleInput = {
         paymentMethod: payment,
         discount: 0,
         customerId: customerId || undefined,
+        installments: useFinancing ? installments : undefined,
+        applyFinancingSurcharge: useFinancing ? applySurcharge : false,
         items: cart.map((l) => ({
           productId: l.product.id,
           quantity: l.quantity,
@@ -334,8 +365,73 @@ export default function PosPage() {
               />
             </div>
 
+            {/* Financiación en cuotas (solo cuenta corriente) */}
+            {payment === "ACCOUNT" && financeConfig && (
+              <div className="card" style={{ padding: 12, marginTop: 4, background: "var(--bg)" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={financed}
+                    onChange={(e) => setFinanced(e.target.checked)}
+                  />
+                  <strong>Financiar en cuotas</strong>
+                </label>
+
+                {financed && (
+                  <div style={{ marginTop: 10 }}>
+                    <div className="field">
+                      <span className="label">Cantidad de cuotas</span>
+                      <select
+                        className="input"
+                        value={installments}
+                        onChange={(e) => setInstallments(Number(e.target.value))}
+                      >
+                        {financeConfig.options.map((o) => (
+                          <option key={o.installments} value={o.installments}>
+                            {o.installments} {o.installments === 1 ? "pago" : "cuotas"}
+                            {o.surchargePercent > 0 ? ` (+${o.surchargePercent}% si aplica recargo)` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginTop: 4 }}>
+                      <input
+                        type="checkbox"
+                        checked={applySurcharge}
+                        onChange={(e) => setApplySurcharge(e.target.checked)}
+                      />
+                      Aplicar recargo por financiación
+                    </label>
+
+                    {perInstallment.length > 0 && (
+                      <div className="muted" style={{ fontSize: 13, marginTop: 10, lineHeight: 1.6 }}>
+                        {surchargePercent > 0 && (
+                          <div>
+                            Recargo {surchargePercent}% → total ${financedTotal.toLocaleString("es-AR")}
+                          </div>
+                        )}
+                        <div>
+                          {installments === 1
+                            ? `1 pago de $${(perInstallment[0] ?? 0).toLocaleString("es-AR")}`
+                            : `${installments} cuotas de ~$${(perInstallment[0] ?? 0).toLocaleString("es-AR")}`}
+                        </div>
+                        <div>1ª cuota vence en 1 mes (luego una por mes).</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             <p style={{ fontSize: 22, fontWeight: 800, color: "var(--text)" }}>
               Total: ${total.toLocaleString("es-AR")}
+              {payment === "ACCOUNT" && financed && surchargePercent > 0 && (
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--muted)" }}>
+                  {" "}
+                  · con recargo ${financedTotal.toLocaleString("es-AR")}
+                </span>
+              )}
             </p>
 
             {error && <p className="alert alert-error">⚠️ {error}</p>}

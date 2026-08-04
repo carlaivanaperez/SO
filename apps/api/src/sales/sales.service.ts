@@ -1,7 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import type { CreateSaleInput, SalesQuery } from "@ferrestock/shared";
+import {
+  surchargeForInstallments,
+  splitInstallmentAmounts,
+  type CreateSaleInput,
+  type SalesQuery,
+} from "@ferrestock/shared";
 import { Prisma, SaleStatus, StockMovementType } from "@ferrestock/db";
+import { FinanceService } from "../finance/finance.service";
 
 // Argentina no usa horario de verano: offset fijo -3h.
 const AR_OFFSET_MS = 3 * 60 * 60 * 1000;
@@ -16,9 +22,24 @@ function arDayStart(dateStr: string): Date {
   return new Date(Date.UTC(y, m - 1, d) + AR_OFFSET_MS);
 }
 
+// Suma `months` meses a una fecha, acotando el día si el mes destino es más
+// corto (ej: 31/ene + 1 mes → 28/feb).
+function addMonths(base: Date, months: number): Date {
+  const d = new Date(base);
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  const lastDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  d.setUTCDate(Math.min(day, lastDay));
+  return d;
+}
+
 @Injectable()
 export class SalesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly finance: FinanceService
+  ) {}
 
   // Historial de ventas con filtros por fecha, medio de pago y producto.
   async list(q: SalesQuery) {
@@ -79,6 +100,23 @@ export class SalesService {
       throw new BadRequestException("Las ventas a cuenta corriente requieren elegir un cliente");
     }
 
+    // Plan de cuotas: solo aplica a cuenta corriente. Resuelve el recargo (%)
+    // de la escala vigente. `financePlan` es null si la venta no se financia.
+    const financeInstallments =
+      dto.paymentMethod === "ACCOUNT" && dto.installments ? dto.installments : null;
+    let financePlan: { count: number; surchargePercent: number } | null = null;
+    if (financeInstallments) {
+      const config = await this.finance.getConfig();
+      const surcharge = surchargeForInstallments(config.options, financeInstallments);
+      if (surcharge === null) {
+        throw new BadRequestException(`La opción de ${financeInstallments} cuotas no está habilitada`);
+      }
+      financePlan = {
+        count: financeInstallments,
+        surchargePercent: dto.applyFinancingSurcharge ? surcharge : 0,
+      };
+    }
+
     const productIds = dto.items.map((i) => i.productId);
     const products = await this.prisma.product.findMany({
       where: { id: { in: productIds } },
@@ -134,7 +172,15 @@ export class SalesService {
         };
       });
 
-      const total = subtotal.plus(tax).minus(dto.discount);
+      const baseTotal = subtotal.plus(tax).minus(dto.discount);
+
+      // Recargo por financiación (0 si no se financia o no se aplica recargo).
+      // El total de la venta ya lo incluye, así que el saldo de cuenta corriente
+      // refleja el monto financiado.
+      const financingSurcharge = financePlan
+        ? baseTotal.times(financePlan.surchargePercent).div(100)
+        : new Prisma.Decimal(0);
+      const total = baseTotal.plus(financingSurcharge);
 
       const sale = await tx.sale.create({
         data: {
@@ -146,10 +192,26 @@ export class SalesService {
           tax,
           discount: dto.discount,
           total,
+          installmentsCount: financePlan ? financePlan.count : null,
+          financingSurcharge,
           items: { create: items },
         },
         include: { items: true },
       });
+
+      // Cronograma de cuotas: monto (con recargo prorrateado) + vencimiento
+      // mensual (la cuota k vence a los k meses de la venta).
+      if (financePlan) {
+        const amounts = splitInstallmentAmounts(Number(total), financePlan.count);
+        await tx.installment.createMany({
+          data: amounts.map((amount, i) => ({
+            saleId: sale.id,
+            number: i + 1,
+            amount: new Prisma.Decimal(amount),
+            dueDate: addMonths(sale.createdAt, i + 1),
+          })),
+        });
+      }
 
       // Descontar stock + registrar movimientos.
       for (const item of dto.items) {

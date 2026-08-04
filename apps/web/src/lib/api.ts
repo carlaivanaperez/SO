@@ -17,6 +17,8 @@ import type {
   CustomerPaymentInput,
   CreditNoteInput,
   CreatePromotionInput,
+  FinanceConfig,
+  UpdateFinanceConfigInput,
 } from "@ferrestock/shared";
 import { getToken } from "./auth";
 
@@ -242,6 +244,17 @@ export type CustomerMovement = {
   method: string | null;
 };
 
+export type CustomerInstallment = {
+  saleNumber: number;
+  number: number;
+  amount: number;
+  paid: number;
+  dueDate: string;
+  status: "PAID" | "PARTIAL" | "PENDING" | "OVERDUE";
+  lateFee: number;
+  overdueDays: number;
+};
+
 export type CustomerDetail = {
   id: string;
   name: string;
@@ -250,7 +263,10 @@ export type CustomerDetail = {
   taxId: string | null;
   address: string | null;
   notes: string | null;
-  balance: string;
+  balance: string; // saldo capital (sin mora)
+  lateFee: string; // mora acumulada por cuotas vencidas
+  totalDue: string; // capital + mora
+  installments: CustomerInstallment[];
   movements: CustomerMovement[];
 };
 
@@ -349,4 +365,18 @@ export async function createUser(input: RegisterInput): Promise<unknown> {
 
 export async function updateUser(id: string, input: UpdateUserInput): Promise<unknown> {
   return request(`/api/auth/users/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+}
+
+// ── Configuración de financiación (cuenta corriente) ─────────
+export type { FinanceConfig } from "@ferrestock/shared";
+
+export async function fetchFinanceConfig(): Promise<FinanceConfig> {
+  return request<FinanceConfig>("/api/finance/config");
+}
+
+export async function updateFinanceConfig(input: UpdateFinanceConfigInput): Promise<FinanceConfig> {
+  return request<FinanceConfig>("/api/finance/config", {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
 }

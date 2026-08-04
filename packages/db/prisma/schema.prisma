@@ -267,14 +267,55 @@ model Sale {
   discount Decimal @default(0) @db.Decimal(12, 2)
   total    Decimal @default(0) @db.Decimal(12, 2)
 
+  // Financiación en cuotas (solo ventas a cuenta corriente).
+  // installmentsCount = null → venta a cuenta abierta (sin plan de cuotas).
+  installmentsCount  Int?    @map("installments_count")
+  financingSurcharge Decimal @default(0) @map("financing_surcharge") @db.Decimal(12, 2) // recargo por financiar (ya incluido en total)
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   items          SaleItem[]
   stockMovements StockMovement[]
+  installments   Installment[]
 
   @@index([status, createdAt])
   @@map("sales")
+}
+
+// Cuota de una venta financiada a cuenta corriente. El monto ya incluye la
+// parte proporcional del recargo por financiación. El estado (pagada/vencida)
+// no se guarda: se deriva imputando los pagos del cliente por vencimiento.
+model Installment {
+  id        String   @id @default(cuid())
+  saleId    String   @map("sale_id")
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  number    Int // 1..N
+  amount    Decimal  @db.Decimal(12, 2)
+  dueDate   DateTime @map("due_date")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([saleId])
+  @@index([dueDate])
+  @@map("installments")
+}
+
+// Configuración de financiación (fila única, id = 1). Editable por ADMIN.
+model FinanceConfig {
+  id                  Int      @id @default(1)
+  lateFeeDailyPercent Decimal  @default(0.3) @map("late_fee_daily_percent") @db.Decimal(6, 3) // interés por mora, % por día
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@map("finance_config")
+}
+
+// Escala de recargo por cantidad de cuotas (editable por ADMIN).
+// Ej: 1 → 0%, 3 → 10%, 6 → 25%, 12 → 60%.
+model InstallmentOption {
+  installments     Int     @id
+  surchargePercent Decimal @map("surcharge_percent") @db.Decimal(6, 2)
+
+  @@map("installment_options")
 }
 
 model SaleItem {

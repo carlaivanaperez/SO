@@ -13,7 +13,12 @@ export function TopTabs({ user }: { user: SessionUser | null }) {
     { href: "/pos", label: "Vender" },
     ...(manage ? [{ href: "/ventas", label: "Ventas" }] : []),
     { href: "/clientes", label: "Clientes" },
-    ...(user?.role === "ADMIN" ? [{ href: "/usuarios", label: "Equipo" }] : []),
+    ...(user?.role === "ADMIN"
+      ? [
+          { href: "/usuarios", label: "Equipo" },
+          { href: "/configuracion", label: "Ajustes" },
+        ]
+      : []),
   ];
   const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 

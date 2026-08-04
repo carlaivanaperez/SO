@@ -111,6 +111,15 @@ export default function CustomerDetailPage() {
 
   const manage = canManage(user);
   const balance = customer ? Number(customer.balance) : 0;
+  const lateFee = customer ? Number(customer.lateFee) : 0;
+  const totalDue = customer ? Number(customer.totalDue) : 0;
+
+  const INSTALLMENT_STATUS: Record<string, { label: string; cls: string }> = {
+    PAID: { label: "Pagada", cls: "badge-ok" },
+    PARTIAL: { label: "Parcial", cls: "badge-warn" },
+    PENDING: { label: "Pendiente", cls: "badge-warn" },
+    OVERDUE: { label: "Vencida", cls: "badge-low" },
+  };
 
   return (
     <>
@@ -168,9 +177,14 @@ export default function CustomerDetailPage() {
                     ? `A favor ${money(-balance)}`
                     : "Al día ✓"}
               </div>
+              {lateFee > 0 && (
+                <div style={{ marginTop: 6, fontSize: 14, color: "var(--danger)" }}>
+                  + Mora {money(lateFee)} · <strong>Total a pagar {money(totalDue)}</strong>
+                </div>
+              )}
               {balance > 0 && whatsappUrl(customer.phone) && (
                 <a
-                  href={whatsappUrl(customer.phone, whatsappDebtMessage(customer.name, balance))!}
+                  href={whatsappUrl(customer.phone, whatsappDebtMessage(customer.name, totalDue))!}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-success"
@@ -182,6 +196,52 @@ export default function CustomerDetailPage() {
                 </a>
               )}
             </div>
+
+            {/* Plan de cuotas (si tiene ventas financiadas) */}
+            {customer.installments.length > 0 && (
+              <section className="card table-wrap" style={{ padding: 0, marginBottom: 16 }}>
+                <h2 style={{ fontSize: 16, padding: "12px 16px 0", margin: 0 }}>Cuotas</h2>
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Venta</th>
+                      <th>Cuota</th>
+                      <th>Vence</th>
+                      <th>Monto</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {customer.installments.map((inst) => {
+                      const st = INSTALLMENT_STATUS[inst.status] ?? INSTALLMENT_STATUS.PENDING!;
+                      return (
+                        <tr key={`${inst.saleNumber}-${inst.number}`}>
+                          <td className="muted">#{inst.saleNumber}</td>
+                          <td>{inst.number}</td>
+                          <td>{new Date(inst.dueDate).toLocaleDateString("es-AR")}</td>
+                          <td>
+                            {money(inst.amount)}
+                            {inst.lateFee > 0 && (
+                              <span className="muted" style={{ fontSize: 12 }}>
+                                {" "}+ mora {money(inst.lateFee)}
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <span className={`badge ${st.cls}`}>{st.label}</span>
+                            {inst.status === "OVERDUE" && (
+                              <span className="muted" style={{ fontSize: 12 }}>
+                                {" "}({inst.overdueDays}d)
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </section>
+            )}
 
             <div className="grid-2">
               {/* Registrar pago + Nota de crédito */}

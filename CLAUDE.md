@@ -144,6 +144,17 @@ Es la **fuente de verdad**. Entidades principales:
   calcula: ventas con `paymentMethod ACCOUNT` (cargos) − pagos. No se guarda un
   campo de saldo; se computa (como el stock).
 - **Sale** / **SaleItem** — ventas con precio **congelado** al momento de la venta.
+  Las ventas a **cuenta corriente** pueden financiarse en cuotas:
+  `installmentsCount` (N) y `financingSurcharge` (recargo, ya incluido en `total`).
+- **Installment** — cuota de una venta financiada (número, monto, `dueDate`). El
+  estado (pagada/parcial/vencida) **no se guarda**: se deriva imputando los pagos
+  del cliente a las obligaciones por vencimiento (más vieja primero) y la **mora**
+  se calcula al leer (`lateFeeDailyPercent` × días de atraso). Ver `customers.service.findOne`.
+- **FinanceConfig** (fila única id=1) + **InstallmentOption** — configuración
+  editable por ADMIN: escala de recargo por cuotas (ej. 3→10%, 6→25%) y tasa de
+  mora (%/día). Se crean con valores por defecto de forma perezosa (`FinanceService.getConfig`),
+  así funciona en prod sin seed. Endpoints en `apps/api/src/finance/` (`GET /api/finance/config`
+  abierto; `PATCH` solo ADMIN). Helpers de cálculo puros en `packages/shared/src/finance.ts`.
 - **WhatsAppQuery** — registro de cada consulta entrante por WhatsApp (auditoría y métricas de demanda).
 
 **Invariante crítico:** todo cambio de stock se hace en una **transacción** que
@@ -230,7 +241,10 @@ que adjunta `Authorization: Bearer`. `app/globals.css` es el sistema de diseño
 `ThemeToggle`, `ProductForm`. Rutas: `/login`, `/` (dashboard + catálogo), `/pos`
 (carrito + venta + selección de cliente), `/ventas` (historial con filtros) +
 `/ventas/[id]` (detalle + imprimir), `/clientes` (+ `/new`, `/[id]` con saldo y
-pagos, `/[id]/edit`), `/products/new`, `/products/[id]/edit` y `/products/[id]/stock`.
+pagos + **cuotas/mora**, `/[id]/edit`), `/products/new`, `/products/[id]/edit`,
+`/products/[id]/stock` y `/configuracion` (solo ADMIN: escala de recargo por cuotas
++ tasa de mora). El POS ofrece **financiar en cuotas** con recargo opcional cuando el
+pago es cuenta corriente.
 El dashboard consume `GET /api/reports/summary`; el historial `GET /api/sales`
 (filtros: `from`/`to`/`paymentMethod`/`product`); clientes `GET /api/customers`
 (con saldo) y `POST /api/customers/:id/payments`. Todas las páginas son client
@@ -259,7 +273,7 @@ Lo que **falta**, en orden sugerido:
 Cuando completes un punto, actualizá esta sección y las partes relevantes del archivo.
 
 **Estado de verificación:** `pnpm typecheck` pasa en los 5 paquetes,
-`pnpm test` corre 10 tests unitarios en verde y
+`pnpm test` corre 19 tests unitarios en verde (incluye cálculo de cuotas/mora) y
 `pnpm --filter @ferrestock/web build` compila la web. Corriendo en producción
 (§12) contra Postgres en Neon.
 

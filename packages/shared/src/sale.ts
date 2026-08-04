@@ -15,6 +15,10 @@ export const createSaleSchema = z.object({
   paymentMethod: paymentMethodSchema,
   discount: z.coerce.number().nonnegative().default(0),
   items: z.array(saleItemInputSchema).min(1, "La venta debe tener al menos un ítem"),
+  // Financiación en cuotas (solo cuenta corriente). Si se omite `installments`,
+  // la venta a cuenta queda abierta (sin plan de cuotas), como siempre.
+  installments: z.coerce.number().int().positive().optional(),
+  applyFinancingSurcharge: z.coerce.boolean().default(false),
 });
 export type CreateSaleInput = z.infer<typeof createSaleSchema>;
 

@@ -82,24 +82,24 @@ h3 {
   margin: 0 0 8px;
 }
 
+/* Panel: parte inferior del recuadro, unido a las pestañas de arriba. */
 .container {
   max-width: 1040px;
-  margin: 14px auto;
-  padding: 24px;
+  margin: 0 auto 16px;
+  padding: 20px 24px 24px;
   border: 2px solid var(--yellow);
-  border-radius: 16px;
-  animation: pageSlideIn 0.26s ease both;
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  animation: pageFade 0.22s ease both;
 }
 
-/* Deslizado del contenido al cambiar de sección */
-@keyframes pageSlideIn {
+/* Aparición suave del contenido al cambiar de sección */
+@keyframes pageFade {
   from {
-    opacity: 0;
-    transform: translateX(16px);
+    opacity: 0.35;
   }
   to {
     opacity: 1;
-    transform: translateX(0);
   }
 }
 
@@ -174,19 +174,20 @@ h3 {
 
 /* Pestañas de sección (estilo MercadoLibre): sin fondo, solo un subrayado
    que se desliza a la sección activa. */
+/* Barra de pestañas unida al panel: forma la parte superior del recuadro. */
 .top-tabs {
+  max-width: 1040px;
+  margin: 16px auto 0;
   background: var(--bg);
-  position: sticky;
-  top: 0;
-  z-index: 40;
+  border: 2px solid var(--yellow);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
 }
 .top-tabs-inner {
-  max-width: 1040px;
-  margin: 0 auto;
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  padding: 8px 12px;
+  padding: 8px 10px;
   scrollbar-width: none;
 }
 .top-tabs-inner::-webkit-scrollbar {
@@ -211,11 +212,11 @@ h3 {
 .tt-item:active {
   transform: scale(0.94); /* sensación de "presión" al tocar */
 }
-/* Pestaña activa: recuadro amarillo delineado, puntas redondeadas, con un
+/* Pestaña activa: relleno amarillo (mismo color del marco), texto oscuro y un
    pequeño rebote elástico al seleccionarse. */
 .tt-item.active {
   background: var(--yellow);
-  border-color: #1b1b1b;
+  border-color: var(--yellow);
   color: #141414;
   animation: tabPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -392,9 +393,12 @@ h3 {
   .grid-3 {
     grid-template-columns: 1fr;
   }
+  .top-tabs {
+    margin: 12px 10px 0;
+  }
   .container {
     padding: 16px;
-    margin: 12px;
+    margin: 0 10px 12px;
   }
   .brand .brand-text {
     font-size: 15px;

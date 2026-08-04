@@ -97,14 +97,31 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
 
   return (
     <div style={{ maxWidth: 1040, margin: "0 auto", padding: "24px 16px 96px" }}>
-      {/* Encabezado del negocio */}
+      {/* Encabezado del negocio (con logo) */}
       <header
-        style={{ background: "var(--yellow)", color: "#141414", borderRadius: 16, padding: "22px 24px", marginBottom: 20 }}
+        style={{
+          background: "var(--yellow)",
+          color: "#141414",
+          borderRadius: 16,
+          padding: "22px 24px",
+          marginBottom: 20,
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+        }}
       >
-        <h1 style={{ margin: 0, fontSize: 26 }}>{store.storeName}</h1>
-        <p style={{ margin: "4px 0 0", fontWeight: 600 }}>
-          Armá tu pedido y envialo por WhatsApp. 🧰
-        </p>
+        <img
+          src="/logo.png"
+          alt={store.storeName}
+          style={{ height: 64, width: 64, objectFit: "contain", flexShrink: 0 }}
+          onError={(e) => (e.currentTarget.style.display = "none")}
+        />
+        <div>
+          <h1 style={{ margin: 0, fontSize: 26 }}>{store.storeName}</h1>
+          <p style={{ margin: "4px 0 0", fontWeight: 600 }}>
+            Armá tu pedido y envialo por WhatsApp. 🧰
+          </p>
+        </div>
       </header>
 
       {/* Buscador */}
@@ -154,6 +171,24 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
       <p className="muted" style={{ fontSize: 12, marginTop: 8, textAlign: "center" }}>
         Los precios incluyen IVA. La disponibilidad puede variar; confirmá por WhatsApp.
       </p>
+
+      {/* Pie: datos del negocio (dirección y horarios) */}
+      {(store.address || store.hours) && (
+        <footer
+          className="card"
+          style={{ marginTop: 20, textAlign: "center", background: "var(--bg)" }}
+        >
+          <strong style={{ display: "block", marginBottom: 6 }}>{store.storeName}</strong>
+          {store.address && (
+            <div className="muted" style={{ fontSize: 14 }}>📍 {store.address}</div>
+          )}
+          {store.hours && (
+            <div className="muted" style={{ fontSize: 14, whiteSpace: "pre-line", marginTop: 4 }}>
+              🕒 {store.hours}
+            </div>
+          )}
+        </footer>
+      )}
 
       {/* Barra flotante del pedido */}
       {count > 0 && (

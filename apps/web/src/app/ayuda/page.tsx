@@ -303,8 +303,9 @@ export default function HelpPage() {
           </p>
           <ol>
             <li>
-              En <strong>“Ajustes” → “Datos del negocio”</strong> cargá el <strong>nombre</strong> y el{" "}
-              <strong>WhatsApp del negocio</strong> (ahí llegan los pedidos).
+              En <strong>“Ajustes” → “Datos del negocio”</strong> cargá el <strong>nombre</strong>, el{" "}
+              <strong>WhatsApp</strong> (ahí llegan los pedidos), la <strong>dirección</strong> y los{" "}
+              <strong>horarios</strong>. El logo y esos datos se muestran en el catálogo.
             </li>
             <li>
               Tocá <strong>“Ver catálogo público”</strong> para verlo y compartir el link (redes,

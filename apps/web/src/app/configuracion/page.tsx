@@ -26,6 +26,8 @@ export default function ConfigPage() {
   // Datos del negocio (para el catálogo público).
   const [storeName, setStoreName] = useState("");
   const [storePhone, setStorePhone] = useState("");
+  const [storeAddress, setStoreAddress] = useState("");
+  const [storeHours, setStoreHours] = useState("");
   const [storeSaving, setStoreSaving] = useState(false);
   const [storeMsg, setStoreMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -63,6 +65,8 @@ export default function ConfigPage() {
       .then((s) => {
         setStoreName(s.storeName);
         setStorePhone(s.whatsappPhone ?? "");
+        setStoreAddress(s.address ?? "");
+        setStoreHours(s.hours ?? "");
       })
       .catch(() => {});
   }, [router]);
@@ -78,8 +82,12 @@ export default function ConfigPage() {
       const s = await updateStoreSettings({
         storeName: storeName.trim(),
         whatsappPhone: storePhone.trim() || null,
+        address: storeAddress.trim() || null,
+        hours: storeHours.trim() || null,
       });
       setStorePhone(s.whatsappPhone ?? "");
+      setStoreAddress(s.address ?? "");
+      setStoreHours(s.hours ?? "");
       setStoreMsg({ ok: true, text: "Datos del negocio guardados." });
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
@@ -174,6 +182,27 @@ export default function ConfigPage() {
               onChange={(e) => setStorePhone(e.target.value)}
               placeholder="Ej: 3624721664"
               inputMode="tel"
+            />
+          </label>
+          <label className="field">
+            <span className="label">Dirección</span>
+            <input
+              className="input"
+              value={storeAddress}
+              onChange={(e) => setStoreAddress(e.target.value)}
+              placeholder="Ej: Av. San Martín 1234, Resistencia"
+              maxLength={200}
+            />
+          </label>
+          <label className="field">
+            <span className="label">Horarios de atención</span>
+            <textarea
+              className="input"
+              value={storeHours}
+              onChange={(e) => setStoreHours(e.target.value)}
+              placeholder="Ej: Lun a Vie 8 a 12:30 y 16 a 20 · Sáb 8 a 13"
+              rows={2}
+              maxLength={300}
             />
           </label>
           {storeMsg && (

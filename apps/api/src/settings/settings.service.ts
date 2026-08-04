@@ -13,7 +13,12 @@ export class SettingsService {
       create: { id: 1 },
       update: {},
     });
-    return { storeName: s.storeName, whatsappPhone: s.whatsappPhone };
+    return {
+      storeName: s.storeName,
+      whatsappPhone: s.whatsappPhone,
+      address: s.address,
+      hours: s.hours,
+    };
   }
 
   async updateStore(dto: UpdateStoreSettingsInput): Promise<StoreSettings> {
@@ -25,11 +30,18 @@ export class SettingsService {
       }
       phone = normalized;
     }
+    const address = dto.address?.trim() || null;
+    const hours = dto.hours?.trim() || null;
     const s = await this.prisma.storeSettings.upsert({
       where: { id: 1 },
-      create: { id: 1, storeName: dto.storeName, whatsappPhone: phone },
-      update: { storeName: dto.storeName, whatsappPhone: phone },
+      create: { id: 1, storeName: dto.storeName, whatsappPhone: phone, address, hours },
+      update: { storeName: dto.storeName, whatsappPhone: phone, address, hours },
     });
-    return { storeName: s.storeName, whatsappPhone: s.whatsappPhone };
+    return {
+      storeName: s.storeName,
+      whatsappPhone: s.whatsappPhone,
+      address: s.address,
+      hours: s.hours,
+    };
   }
 }

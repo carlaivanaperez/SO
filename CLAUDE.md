@@ -158,9 +158,10 @@ Es la **fuente de verdad**. Entidades principales:
   mora (%/día). Se crean con valores por defecto de forma perezosa (`FinanceService.getConfig`),
   así funciona en prod sin seed. Endpoints en `apps/api/src/finance/` (`GET /api/finance/config`
   abierto; `PATCH` solo ADMIN). Helpers de cálculo puros en `packages/shared/src/finance.ts`.
-- **StoreSettings** (fila única id=1) — datos del negocio (nombre + WhatsApp E.164),
-  editables por ADMIN en `/configuracion`. Los usa el **catálogo público**. Se crea
-  con defaults de forma perezosa (`SettingsService.getStore`).
+- **StoreSettings** (fila única id=1) — datos del negocio (nombre, WhatsApp E.164,
+  dirección, horarios), editables por ADMIN en `/configuracion`. Los usa el
+  **catálogo público** (logo + nombre en el encabezado; dirección/horarios en el pie).
+  Se crea con defaults de forma perezosa (`SettingsService.getStore`).
 - **WhatsAppQuery** — registro de cada consulta entrante por WhatsApp (auditoría y métricas de demanda).
 
 **Invariante crítico:** todo cambio de stock se hace en una **transacción** que

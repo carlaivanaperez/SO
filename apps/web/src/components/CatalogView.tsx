@@ -123,18 +123,19 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
         </div>
       )}
 
-      {/* Encabezado del negocio (con logo) */}
+      {/* Encabezado del negocio (con logo centrado) */}
       <header
         style={{
           background: "var(--yellow)",
           color: "#141414",
           borderRadius: 16,
-          padding: "24px",
+          padding: "28px 24px",
           marginBottom: 20,
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          gap: 20,
-          flexWrap: "wrap",
+          textAlign: "center",
+          gap: 10,
         }}
       >
         {/* Nombre del negocio para buscadores/lectores de pantalla (el logo ya lo muestra) */}
@@ -146,10 +147,10 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
         <img
           src="/logo-transparent.png"
           alt={store.storeName}
-          style={{ height: 170, width: 170, objectFit: "contain", flexShrink: 0, display: "block" }}
+          style={{ height: 200, width: 200, maxWidth: "80%", objectFit: "contain", display: "block" }}
           onError={(e) => (e.currentTarget.style.display = "none")}
         />
-        <div style={{ flex: 1, minWidth: 200 }}>
+        <div>
           <p style={{ margin: 0, fontWeight: 700, fontSize: 18 }}>
             Armá tu pedido y envialo por WhatsApp. 🧰
           </p>

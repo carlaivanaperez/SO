@@ -182,8 +182,15 @@ Los secretos de WhatsApp van **solo en `.env`** (nunca commiteados). Ver `.env.e
   el usuario a `request.user`. `RolesGuard` + el decorador `@Roles(...)` restringen
   por rol. El decorador `@CurrentUser()` inyecta el usuario en el handler.
 - **Roles**: `ADMIN` (todo), `MANAGER` (catálogo, precios, stock, reportes),
-  `CASHIER` (solo ventas). Ej: crear/editar productos requiere `ADMIN`/`MANAGER`;
+  `CASHIER` (solo vende). Ej: crear/editar productos requiere `ADMIN`/`MANAGER`;
   registrar staff (`POST /api/auth/register`) requiere `ADMIN`.
+- **El vendedor (`CASHIER`) no ve facturación del negocio.** Enforced en la API,
+  no solo en la UI: `GET /api/sales` (historial) es `@Roles("ADMIN","MANAGER")`,
+  y `GET /api/reports/summary` omite el dinero del día (`today.revenue = null`) y
+  las últimas ventas cuando el rol es `CASHIER`. `POST /api/sales` (crear venta)
+  y `GET /api/sales/:id` (comprobante) siguen abiertos para que pueda vender e
+  imprimir. En la web: `TopTabs` oculta la pestaña "Ventas", el dashboard esconde
+  el KPI de dinero y "Últimas ventas", y `/ventas` redirige al vendedor a `/`.
 - El endpoint de webhook de WhatsApp **no** usa estos guards: se protege con la
   firma de Meta (ver §6).
 

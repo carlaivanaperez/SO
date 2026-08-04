@@ -82,13 +82,13 @@ h3 {
   margin: 0 0 8px;
 }
 
-/* Panel: parte inferior del recuadro, unido a las pestañas de arriba. */
+/* Panel: parte inferior del recuadro, del mismo color que el contenido; se
+   funde con la pestaña activa (que también es de este color). */
 .container {
   max-width: 1040px;
   margin: 0 auto 16px;
   padding: 20px 24px 24px;
-  border: 2px solid var(--yellow);
-  border-top: none;
+  background: var(--bg);
   border-radius: 0 0 16px 16px;
   animation: pageFade 0.22s ease both;
 }
@@ -174,20 +174,20 @@ h3 {
 
 /* Pestañas de sección (estilo MercadoLibre): sin fondo, solo un subrayado
    que se desliza a la sección activa. */
-/* Barra de pestañas unida al panel: forma la parte superior del recuadro. */
+/* Barra de pestañas estilo Mercado Libre: toda la sección pintada de amarillo.
+   La pestaña activa se "recorta" del amarillo (mismo color del contenido) y se
+   funde hacia abajo con el panel. Sin bordes: es una pieza sólida. */
 .top-tabs {
   max-width: 1040px;
   margin: 16px auto 0;
-  background: var(--bg);
-  border: 2px solid var(--yellow);
-  border-bottom: none;
+  background: var(--yellow);
   border-radius: 16px 16px 0 0;
 }
 .top-tabs-inner {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   overflow-x: auto;
-  padding: 8px 10px;
+  padding: 7px 10px 0; /* sin padding inferior: la pestaña activa toca el panel */
   scrollbar-width: none;
 }
 .top-tabs-inner::-webkit-scrollbar {
@@ -195,37 +195,41 @@ h3 {
 }
 .tt-item {
   flex: 0 0 auto;
-  padding: 9px 16px;
-  color: var(--muted);
+  padding: 10px 18px;
+  color: #3d2f00; /* texto oscuro sobre el amarillo */
   font-weight: 700;
   font-size: 15px;
   white-space: nowrap;
   text-decoration: none;
-  border: 2px solid transparent; /* reserva el espacio del borde */
-  border-radius: 12px;
-  transition: transform 0.09s ease, color 0.15s ease;
+  border-radius: 10px 10px 0 0;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 .tt-item:hover {
-  color: var(--text);
+  color: #141414;
   text-decoration: none;
+  background: rgba(0, 0, 0, 0.06); /* leve realce al pasar por encima */
 }
 .tt-item:active {
-  transform: scale(0.94); /* sensación de "presión" al tocar */
+  transform: translateY(1px); /* sensación de "presión" al tocar */
 }
-/* Pestaña activa: relleno amarillo (mismo color del marco), texto oscuro y un
-   pequeño rebote elástico al seleccionarse. */
+/* Pestaña activa: del color del contenido, con esquinas superiores redondeadas,
+   se conecta con el panel de abajo (efecto "sale del botón" tipo ML). */
 .tt-item.active {
-  background: var(--yellow);
-  border-color: var(--yellow);
-  color: #141414;
-  animation: tabPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: var(--bg);
+  color: var(--text);
+  animation: tabRise 0.22s ease;
 }
-@keyframes tabPop {
+.tt-item.active:hover {
+  background: var(--bg); /* no oscurecer la pestaña activa al pasar el mouse */
+}
+@keyframes tabRise {
   from {
-    transform: scale(0.8);
+    opacity: 0.4;
+    transform: translateY(3px);
   }
   to {
-    transform: scale(1);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 .nav .user {

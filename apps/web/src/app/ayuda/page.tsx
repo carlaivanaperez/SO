@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { getToken, getUser, canManage, type SessionUser } from "@/lib/auth";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 type Audience = "all" | "manage" | "admin";
 
@@ -382,11 +383,21 @@ export default function HelpPage() {
 
         <div className="card" style={{ marginTop: 16, background: "var(--bg)" }}>
           <h2 style={{ fontSize: 16, marginTop: 0 }}>¿Se trabó algo?</h2>
-          <ul style={{ lineHeight: 1.7, marginBottom: 0 }}>
+          <ul style={{ lineHeight: 1.7, marginBottom: 12 }}>
             <li>Si una pantalla no responde, cerrá y volvé a entrar (los datos están guardados).</li>
             <li>Si te pide iniciar sesión de nuevo, es por seguridad: volvé a entrar y listo.</li>
             <li>Ante cualquier duda, hablá con el encargado o el administrador del negocio.</li>
           </ul>
+          <a
+            href="https://wa.me/5493624721664?text=Hola,%20necesito%20ayuda%20con%20el%20sistema."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-success"
+            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+          >
+            <WhatsAppIcon size={18} />
+            Contactar al administrador por WhatsApp
+          </a>
         </div>
 
         <p style={{ marginTop: 16 }}>

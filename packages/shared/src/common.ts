@@ -24,13 +24,24 @@ export function normalizeArPhone(raw: string): string | null {
 /**
  * Arma el link de WhatsApp (wa.me) a partir de un teléfono E.164. Si el número
  * no vino en E.164 intenta normalizarlo como celular argentino. Devuelve null
- * si no hay un número usable (para no mostrar el link).
+ * si no hay un número usable (para no mostrar el link). Si se pasa `text`, deja
+ * ese mensaje precargado en el chat (ej: un saludo inicial).
  */
-export function whatsappUrl(phone: string | null | undefined): string | null {
+export function whatsappUrl(phone: string | null | undefined, text?: string): string | null {
   if (!phone) return null;
   const e164 = /^\+[1-9]\d{7,14}$/.test(phone) ? phone : normalizeArPhone(phone);
   if (!e164) return null;
-  return `https://wa.me/${e164.replace(/\D/g, "")}`; // wa.me quiere solo dígitos
+  const base = `https://wa.me/${e164.replace(/\D/g, "")}`; // wa.me quiere solo dígitos
+  return text ? `${base}?text=${encodeURIComponent(text)}` : base;
+}
+
+/**
+ * Saludo inicial precargado para escribirle a un cliente por WhatsApp. Usa solo
+ * el primer nombre para que suene cercano.
+ */
+export function whatsappGreeting(name: string): string {
+  const firstName = name.trim().split(/\s+/)[0] || name.trim();
+  return `Hola ${firstName}, me comunico de la ferretería. `;
 }
 
 /** Paginación estándar para todos los listados. */

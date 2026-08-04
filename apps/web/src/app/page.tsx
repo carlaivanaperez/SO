@@ -120,41 +120,47 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {/* Indicadores del día */}
+        {/* Indicadores del día. El vendedor no ve la facturación (dinero del día). */}
         <div className="kpis">
           <div className="kpi">
             <div className="kpi-label">Ventas de hoy</div>
             <div className="kpi-value">{summary ? summary.today.count : "…"}</div>
           </div>
-          <div className="kpi kpi-money">
-            <div className="kpi-label">Dinero ingresado hoy</div>
-            <div className="kpi-value">{summary ? money(summary.today.revenue) : "…"}</div>
-          </div>
+          {manage && (
+            <div className="kpi kpi-money">
+              <div className="kpi-label">Dinero ingresado hoy</div>
+              <div className="kpi-value">
+                {summary ? money(summary.today.revenue ?? 0) : "…"}
+              </div>
+            </div>
+          )}
           <div className="kpi kpi-danger">
             <div className="kpi-label">Productos con poco stock</div>
             <div className="kpi-value">{summary ? summary.lowStock.count : "…"}</div>
           </div>
         </div>
 
-        {/* Últimas ventas + Poco stock */}
-        <div className="grid-2" style={{ marginBottom: 20 }}>
-          <section className="card">
-            <h2 style={{ fontSize: 16 }}>Últimas ventas</h2>
-            {summary?.recentSales.length === 0 && <p className="muted">Todavía no hay ventas.</p>}
-            {summary?.recentSales.map((s) => (
-              <div key={s.id} className="list-row">
-                <span>
-                  <strong>#{s.number}</strong>{" "}
-                  <span className="muted">
-                    · {s.itemCount} ít.{" "}
-                    {s.paymentMethod ? `· ${PAYMENT_LABELS[s.paymentMethod] ?? s.paymentMethod}` : ""}
+        {/* Últimas ventas (solo gestión) + Poco stock */}
+        <div className={manage ? "grid-2" : ""} style={{ marginBottom: 20 }}>
+          {manage && (
+            <section className="card">
+              <h2 style={{ fontSize: 16 }}>Últimas ventas</h2>
+              {summary?.recentSales.length === 0 && <p className="muted">Todavía no hay ventas.</p>}
+              {summary?.recentSales.map((s) => (
+                <div key={s.id} className="list-row">
+                  <span>
+                    <strong>#{s.number}</strong>{" "}
+                    <span className="muted">
+                      · {s.itemCount} ít.{" "}
+                      {s.paymentMethod ? `· ${PAYMENT_LABELS[s.paymentMethod] ?? s.paymentMethod}` : ""}
+                    </span>
                   </span>
-                </span>
-                <strong>{money(s.total)}</strong>
-              </div>
-            ))}
-            {!summary && <p className="muted">Cargando…</p>}
-          </section>
+                  <strong>{money(s.total)}</strong>
+                </div>
+              ))}
+              {!summary && <p className="muted">Cargando…</p>}
+            </section>
+          )}
 
           <section className="card">
             <div

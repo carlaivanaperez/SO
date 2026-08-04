@@ -1,20 +1,20 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { SessionUser } from "@/lib/auth";
+import { canManage, type SessionUser } from "@/lib/auth";
 
-// Pestañas de sección: la activa queda marcada con un recuadro amarillo
-// delineado y de puntas redondeadas (sin animación de deslizado).
-const TABS = [
-  { href: "/", label: "Panel" },
-  { href: "/pos", label: "Vender" },
-  { href: "/ventas", label: "Ventas" },
-  { href: "/clientes", label: "Clientes" },
-];
-
+// Pestañas de sección. Se arman según el rol: el vendedor (CASHIER) no ve
+// "Ventas" (historial/facturación del negocio) ni "Equipo".
 export function TopTabs({ user }: { user: SessionUser | null }) {
   const path = usePathname();
-  const tabs = user?.role === "ADMIN" ? [...TABS, { href: "/usuarios", label: "Equipo" }] : TABS;
+  const manage = canManage(user);
+  const tabs = [
+    { href: "/", label: "Panel" },
+    { href: "/pos", label: "Vender" },
+    ...(manage ? [{ href: "/ventas", label: "Ventas" }] : []),
+    { href: "/clientes", label: "Clientes" },
+    ...(user?.role === "ADMIN" ? [{ href: "/usuarios", label: "Equipo" }] : []),
+  ];
   const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
   return (

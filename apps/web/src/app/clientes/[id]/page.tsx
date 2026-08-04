@@ -11,7 +11,7 @@ import {
   type CustomerDetail,
 } from "@/lib/api";
 import { getToken, getUser, canManage, clearSession, type SessionUser } from "@/lib/auth";
-import { whatsappUrl } from "@ferrestock/shared";
+import { whatsappUrl, whatsappGreeting } from "@ferrestock/shared";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 const PAYMENTS = [
@@ -132,7 +132,7 @@ export default function CustomerDetailPage() {
               <div style={{ display: "flex", gap: 8 }}>
                 {whatsappUrl(customer.phone) && (
                   <a
-                    href={whatsappUrl(customer.phone)!}
+                    href={whatsappUrl(customer.phone, whatsappGreeting(customer.name))!}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-success"

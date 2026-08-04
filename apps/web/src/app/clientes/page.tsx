@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { fetchCustomers, ApiError, type CustomerRow } from "@/lib/api";
 import { getToken, getUser, clearSession, canManage, type SessionUser } from "@/lib/auth";
-import { whatsappUrl } from "@ferrestock/shared";
+import { whatsappUrl, whatsappGreeting } from "@ferrestock/shared";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 const money = (v: string | number) => `$${Number(v).toLocaleString("es-AR")}`;
@@ -91,7 +91,7 @@ export default function CustomersPage() {
                     <td>
                       {whatsappUrl(c.phone) ? (
                         <a
-                          href={whatsappUrl(c.phone)!}
+                          href={whatsappUrl(c.phone, whatsappGreeting(c.name))!}
                           target="_blank"
                           rel="noopener noreferrer"
                           title="Escribirle por WhatsApp"

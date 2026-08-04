@@ -17,7 +17,9 @@ function startOfTodayAr(): Date {
 export class ReportsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async summary() {
+  // `canSeeRevenue` = ADMIN/MANAGER. El vendedor (CASHIER) no ve facturación:
+  // ni el dinero del día ni el listado de últimas ventas del negocio.
+  async summary(canSeeRevenue: boolean) {
     const since = startOfTodayAr();
 
     const [todayAgg, recentSales, products] = await Promise.all([
@@ -27,20 +29,22 @@ export class ReportsService {
         _count: { _all: true },
         _sum: { total: true },
       }),
-      // Últimas 5 ventas.
-      this.prisma.sale.findMany({
-        where: { status: SaleStatus.COMPLETED },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        select: {
-          id: true,
-          number: true,
-          total: true,
-          createdAt: true,
-          paymentMethod: true,
-          _count: { select: { items: true } },
-        },
-      }),
+      // Últimas 5 ventas (solo para quien puede ver facturación).
+      canSeeRevenue
+        ? this.prisma.sale.findMany({
+            where: { status: SaleStatus.COMPLETED },
+            orderBy: { createdAt: "desc" },
+            take: 5,
+            select: {
+              id: true,
+              number: true,
+              total: true,
+              createdAt: true,
+              paymentMethod: true,
+              _count: { select: { items: true } },
+            },
+          })
+        : Promise.resolve([]),
       // Productos activos con su stock, para detectar los que están bajos.
       this.prisma.product.findMany({
         where: { active: true },
@@ -59,7 +63,7 @@ export class ReportsService {
     return {
       today: {
         count: todayAgg._count._all,
-        revenue: (todayAgg._sum.total ?? new Prisma.Decimal(0)).toString(),
+        revenue: canSeeRevenue ? (todayAgg._sum.total ?? new Prisma.Decimal(0)).toString() : null,
       },
       lowStock: {
         count: lowStockItems.length,

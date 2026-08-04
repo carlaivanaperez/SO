@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { fetchSales, ApiError, type SaleListRow } from "@/lib/api";
-import { getToken, getUser, clearSession, type SessionUser } from "@/lib/auth";
+import { getToken, getUser, clearSession, canManage, type SessionUser } from "@/lib/auth";
 
 const PAYMENTS: { value: string; label: string }[] = [
   { value: "", label: "Todos los pagos" },
@@ -44,7 +44,13 @@ export default function SalesHistoryPage() {
       router.replace("/login");
       return;
     }
-    setUser(getUser());
+    const u = getUser();
+    // El historial de ventas es facturación del negocio: el vendedor no entra.
+    if (!canManage(u)) {
+      router.replace("/");
+      return;
+    }
+    setUser(u);
   }, [router]);
 
   const load = useCallback(() => {

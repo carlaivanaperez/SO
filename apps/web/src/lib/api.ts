@@ -140,7 +140,7 @@ export async function fetchWarehouses(): Promise<Warehouse[]> {
 }
 
 export type DashboardSummary = {
-  today: { count: number; revenue: string };
+  today: { count: number; revenue: string | null };
   lowStock: { count: number; items: { id: string; name: string; stock: string; min: string }[] };
   recentSales: {
     id: string;

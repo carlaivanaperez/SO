@@ -47,7 +47,7 @@ export default function UsersPage() {
     }
     const u = getUser();
     if (u?.role !== "ADMIN") {
-      router.replace("/");
+      router.replace("/panel");
       return;
     }
     setUser(u);

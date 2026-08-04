@@ -19,7 +19,7 @@ export function AppHeader({ user }: { user: SessionUser | null }) {
     <>
       <header className="app-header">
         <div className="inner">
-          <Link href="/" className="brand" style={{ color: "#fff" }}>
+          <Link href="/panel" className="brand" style={{ color: "#fff" }}>
             {/* El logo se sirve desde apps/web/public/logo.png */}
             <img
               src="/logo.png"

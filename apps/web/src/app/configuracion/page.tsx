@@ -37,7 +37,7 @@ export default function ConfigPage() {
     const u = getUser();
     // La config de tasas es solo para el ADMIN.
     if (u?.role !== "ADMIN") {
-      router.replace("/");
+      router.replace("/panel");
       return;
     }
     setUser(u);
@@ -185,7 +185,7 @@ export default function ConfigPage() {
             <button onClick={saveStore} disabled={storeSaving} className="btn btn-primary">
               {storeSaving ? "Guardando…" : "Guardar datos del negocio"}
             </button>
-            <Link href="/catalogo" target="_blank" className="btn btn-outline">
+            <Link href="/" target="_blank" className="btn btn-outline">
               Ver catálogo público ↗
             </Link>
           </div>

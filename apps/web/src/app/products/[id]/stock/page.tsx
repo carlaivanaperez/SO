@@ -44,7 +44,7 @@ export default function StockPage() {
     }
     const u = getUser();
     if (!canManage(u)) {
-      router.replace("/");
+      router.replace("/panel");
       return;
     }
     setUser(u);
@@ -93,7 +93,7 @@ export default function StockPage() {
     <>
       <AppHeader user={user} />
       <main className="container" style={{ maxWidth: 560 }}>
-        <Link href="/">← Volver al panel</Link>
+        <Link href="/panel">← Volver al panel</Link>
         <h1 style={{ marginTop: 8 }}>Ajustar stock</h1>
         {product && (
           <p className="muted">

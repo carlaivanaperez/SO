@@ -24,7 +24,7 @@ export default function EditProductPage() {
     }
     const u = getUser();
     if (!canManage(u)) {
-      router.replace("/");
+      router.replace("/panel");
       return;
     }
     setUser(u);
@@ -44,7 +44,7 @@ export default function EditProductPage() {
     <>
       <AppHeader user={user} />
       <main className="container" style={{ maxWidth: 720 }}>
-        <Link href="/">← Volver al panel</Link>
+        <Link href="/panel">← Volver al panel</Link>
         <div className="page-head" style={{ marginTop: 8 }}>
           <h1 style={{ margin: 0 }}>Editar producto</h1>
           {product && (

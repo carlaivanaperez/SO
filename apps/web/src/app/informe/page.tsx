@@ -65,7 +65,7 @@ export default function MonthlyReportPage() {
     }
     const u = getUser();
     if (!canManage(u)) {
-      router.replace("/");
+      router.replace("/panel");
       return;
     }
     setUser(u);
@@ -82,7 +82,7 @@ export default function MonthlyReportPage() {
         <div className="no-print">
           <div className="page-head">
             <h1 style={{ margin: 0 }}>Informe mensual</h1>
-            <Link href="/" className="btn btn-outline">
+            <Link href="/panel" className="btn btn-outline">
               ← Volver al panel
             </Link>
           </div>

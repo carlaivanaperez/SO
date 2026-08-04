@@ -297,7 +297,9 @@ export default function HelpPage() {
         <>
           <p>
             Hay una página <strong>pública, sin login</strong>, donde los clientes ven tus productos
-            con precio y disponibilidad, y piden por WhatsApp. La dirección es tu sitio + <code>/catalogo</code>.
+            con precio y disponibilidad, y piden por WhatsApp. Es la <strong>dirección principal del
+            sitio</strong> (la raíz): eso es lo que compartís con los clientes. El panel de la
+            ferretería (con login, para el equipo) vive aparte, en <code>/panel</code>.
           </p>
           <ol>
             <li>
@@ -384,7 +386,7 @@ export default function HelpPage() {
         </div>
 
         <p style={{ marginTop: 16 }}>
-          <Link href="/">← Volver al panel</Link>
+          <Link href="/panel">← Volver al panel</Link>
         </p>
       </main>
     </>

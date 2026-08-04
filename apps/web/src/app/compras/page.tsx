@@ -54,7 +54,7 @@ export default function PurchaseListPage() {
       <AppHeader user={user} />
       <main className="container">
         <div className="page-head no-print">
-          <Link href="/">← Volver al panel</Link>
+          <Link href="/panel">← Volver al panel</Link>
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn btn-outline" onClick={downloadCsv} disabled={items.length === 0}>
               Descargar (Excel)

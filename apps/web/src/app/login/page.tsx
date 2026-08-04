@@ -19,7 +19,7 @@ export default function LoginPage() {
     try {
       const auth = await login({ email, password });
       saveSession(auth);
-      router.push("/");
+      router.push("/panel");
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo iniciar sesión");
     } finally {

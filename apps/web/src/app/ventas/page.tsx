@@ -47,7 +47,7 @@ export default function SalesHistoryPage() {
     const u = getUser();
     // El historial de ventas es facturación del negocio: el vendedor no entra.
     if (!canManage(u)) {
-      router.replace("/");
+      router.replace("/panel");
       return;
     }
     setUser(u);

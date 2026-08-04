@@ -23,7 +23,7 @@ export default function MarginsPage() {
     const u = getUser();
     // El costo/margen es información sensible: solo ADMIN/MANAGER.
     if (!canManage(u)) {
-      router.replace("/");
+      router.replace("/panel");
       return;
     }
     setUser(u);
@@ -58,7 +58,7 @@ export default function MarginsPage() {
       <main className="container">
         <div className="page-head">
           <h1 style={{ margin: 0 }}>Márgenes y ganancia</h1>
-          <Link href="/" className="btn btn-outline">
+          <Link href="/panel" className="btn btn-outline">
             ← Volver al panel
           </Link>
         </div>

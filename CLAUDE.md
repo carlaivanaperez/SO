@@ -244,7 +244,9 @@ indicadores (ventas del día, dinero, stock bajo, últimas ventas), catálogo co
 y expone `canManage()` (gate de ADMIN/MANAGER); `lib/api.ts` es el cliente HTTP
 que adjunta `Authorization: Bearer`. `app/globals.css` es el sistema de diseño
 (variables de tema claro/oscuro). Componentes: `AppHeader` (logo + nav + toggle),
-`ThemeToggle`, `ProductForm`. Rutas: `/login`, `/` (dashboard + catálogo), `/pos`
+`ThemeToggle`, `ProductForm`. **Rutas**: `/` = **catálogo público** (sin login,
+server component); el **panel del staff** está en `/panel` (dashboard + catálogo
+interno; login redirige ahí). Luego `/login`, `/pos`
 (carrito + venta + selección de cliente), `/ventas` (historial con filtros) +
 `/ventas/[id]` (detalle + imprimir), `/clientes` (+ `/new`, `/[id]` con saldo y
 pagos + **cuotas/mora**, `/[id]/edit`), `/products/new`, `/products/[id]/edit`,
@@ -276,8 +278,10 @@ Lo que **falta**, en orden sugerido:
    tests de integración/e2e. Los tests mockean Prisma (no requieren base). Se
    corren con `pnpm test`.
 3. **Matching de productos en WhatsApp**: hoy es `contains` simple; mejorar con
-   full-text search de Postgres o similar. **Catálogo público** ya está: página
-   `/catalogo` (server component, sin login, SEO) que consume `GET /api/public/catalog`
+   full-text search de Postgres o similar. **Catálogo público** ya está: es la
+   **raíz `/`** del sitio (server component, sin login, SEO) — la puerta de entrada
+   para clientes. El **panel del staff vive en `/panel`** (login → `/panel`), así un
+   cliente nunca ve el login. `GET /api/public/catalog`
    (endpoint abierto, `apps/api/src/public/`) — solo expone nombre, marca, precio
    final, "Disponible/Sin stock" y promo; nunca costo/margen/stock exacto. Cada
    producto tiene botón "Reservar/pedir por WhatsApp" al número del negocio

@@ -9,7 +9,7 @@ export function TopTabs({ user }: { user: SessionUser | null }) {
   const path = usePathname();
   const manage = canManage(user);
   const tabs = [
-    { href: "/", label: "Panel" },
+    { href: "/panel", label: "Panel" },
     { href: "/pos", label: "Vender" },
     ...(manage ? [{ href: "/ventas", label: "Ventas" }] : []),
     { href: "/clientes", label: "Clientes" },
@@ -21,7 +21,7 @@ export function TopTabs({ user }: { user: SessionUser | null }) {
       : []),
     { href: "/ayuda", label: "Ayuda" },
   ];
-  const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+  const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
 
   return (
     <div className="top-tabs">

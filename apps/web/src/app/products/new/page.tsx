@@ -18,7 +18,7 @@ export default function NewProductPage() {
     }
     const u = getUser();
     if (!canManage(u)) {
-      router.replace("/");
+      router.replace("/panel");
       return;
     }
     setUser(u);
@@ -31,7 +31,7 @@ export default function NewProductPage() {
     <>
       <AppHeader user={user} />
       <main className="container" style={{ maxWidth: 720 }}>
-        <Link href="/">← Volver al panel</Link>
+        <Link href="/panel">← Volver al panel</Link>
         <h1 style={{ marginTop: 8 }}>Nuevo producto</h1>
         <ProductForm initial={null} />
       </main>

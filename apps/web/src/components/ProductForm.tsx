@@ -70,7 +70,7 @@ export function ProductForm({ initial }: { initial: ProductDetail | null }) {
       } else {
         await createProduct(payload);
       }
-      router.push("/");
+      router.push("/panel");
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         clearSession();

@@ -21,6 +21,7 @@ export type PublicCatalogItem = {
   price: string; // precio final con IVA incluido
   available: boolean; // hay stock (sin exponer la cantidad exacta)
   promoLabel: string | null; // ej: "20% off" o "2x1"
+  category: { id: string; name: string } | null; // rubro
 };
 
 export type PublicCatalog = {

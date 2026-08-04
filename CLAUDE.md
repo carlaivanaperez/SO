@@ -281,7 +281,10 @@ Lo que **falta**, en orden sugerido:
    full-text search de Postgres o similar. **Catálogo público** ya está: es la
    **raíz `/`** del sitio (server component, sin login, SEO) — la puerta de entrada
    para clientes. El **panel del staff vive en `/panel`** (login → `/panel`), así un
-   cliente nunca ve el login. `GET /api/public/catalog`
+   cliente nunca ve el login. Incluye **filtro por rubro** (agrupado por categoría)
+   y un **carrito de pedido** (client component `CatalogView`, persistido en
+   localStorage) que arma la lista y la envía por WhatsApp al negocio (no es compra
+   online). `GET /api/public/catalog`
    (endpoint abierto, `apps/api/src/public/`) — solo expone nombre, marca, precio
    final, "Disponible/Sin stock" y promo; nunca costo/margen/stock exacto. Cada
    producto tiene botón "Reservar/pedir por WhatsApp" al número del negocio

@@ -36,13 +36,14 @@ export class PublicService {
       this.prisma.product.findMany({
         where,
         orderBy: { name: "asc" },
-        take: 300,
+        take: 500,
         select: {
           id: true,
           name: true,
           brand: true,
           salePrice: true,
           stockItems: { select: { quantity: true } },
+          category: { select: { id: true, name: true } },
         },
       }),
       this.prisma.promotion.findMany({
@@ -68,6 +69,7 @@ export class PublicService {
         price: p.salePrice.toString(),
         available: stock.greaterThan(0),
         promoLabel,
+        category: p.category ? { id: p.category.id, name: p.category.name } : null,
       };
     });
 

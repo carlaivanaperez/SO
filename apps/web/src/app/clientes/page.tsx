@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { fetchCustomers, ApiError, type CustomerRow } from "@/lib/api";
 import { getToken, getUser, clearSession, canManage, type SessionUser } from "@/lib/auth";
+import { whatsappUrl } from "@ferrestock/shared";
 
 const money = (v: string | number) => `$${Number(v).toLocaleString("es-AR")}`;
 
@@ -86,7 +87,21 @@ export default function CustomersPage() {
                     <td>
                       <strong>{c.name}</strong>
                     </td>
-                    <td className="muted">{c.phone ?? "—"}</td>
+                    <td>
+                      {whatsappUrl(c.phone) ? (
+                        <a
+                          href={whatsappUrl(c.phone)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Escribirle por WhatsApp"
+                          style={{ color: "var(--success)", fontWeight: 600 }}
+                        >
+                          {c.phone}
+                        </a>
+                      ) : (
+                        <span className="muted">{c.phone ?? "—"}</span>
+                      )}
+                    </td>
                     <td>
                       {bal > 0 ? (
                         <span className="badge badge-low">Debe {money(bal)}</span>

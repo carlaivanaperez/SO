@@ -21,6 +21,18 @@ export function normalizeArPhone(raw: string): string | null {
   return `+549${d}`;
 }
 
+/**
+ * Arma el link de WhatsApp (wa.me) a partir de un teléfono E.164. Si el número
+ * no vino en E.164 intenta normalizarlo como celular argentino. Devuelve null
+ * si no hay un número usable (para no mostrar el link).
+ */
+export function whatsappUrl(phone: string | null | undefined): string | null {
+  if (!phone) return null;
+  const e164 = /^\+[1-9]\d{7,14}$/.test(phone) ? phone : normalizeArPhone(phone);
+  if (!e164) return null;
+  return `https://wa.me/${e164.replace(/\D/g, "")}`; // wa.me quiere solo dígitos
+}
+
 /** Paginación estándar para todos los listados. */
 export const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

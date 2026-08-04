@@ -11,6 +11,7 @@ import {
   type CustomerDetail,
 } from "@/lib/api";
 import { getToken, getUser, canManage, clearSession, type SessionUser } from "@/lib/auth";
+import { whatsappUrl } from "@ferrestock/shared";
 
 const PAYMENTS = [
   { value: "CASH", label: "Efectivo" },
@@ -127,11 +128,24 @@ export default function CustomerDetailPage() {
                   {[customer.phone, customer.taxId].filter(Boolean).join(" · ") || "Sin datos de contacto"}
                 </p>
               </div>
-              {manage && (
-                <Link href={`/clientes/${customer.id}/edit`} className="btn btn-outline">
-                  Editar
-                </Link>
-              )}
+              <div style={{ display: "flex", gap: 8 }}>
+                {whatsappUrl(customer.phone) && (
+                  <a
+                    href={whatsappUrl(customer.phone)!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-success"
+                    title="Escribirle por WhatsApp"
+                  >
+                    WhatsApp
+                  </a>
+                )}
+                {manage && (
+                  <Link href={`/clientes/${customer.id}/edit`} className="btn btn-outline">
+                    Editar
+                  </Link>
+                )}
+              </div>
             </div>
 
             {/* Saldo */}

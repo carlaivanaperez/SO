@@ -11,7 +11,7 @@ export function TopTabs({ user }: { user: SessionUser | null }) {
   const tabs: { href: string; label: string; external?: boolean }[] = [
     { href: "/panel", label: "Panel" },
     { href: "/pos", label: "Vender" },
-    ...(manage ? [{ href: "/ventas", label: "Ventas" }] : []),
+    ...(manage ? [{ href: "/ventas", label: "Historial" }] : []),
     { href: "/clientes", label: "Clientes" },
     // Catálogo público (uso de todos): abre en otra pestaña para no cerrar la sesión.
     { href: "/", label: "Catálogo ↗", external: true },

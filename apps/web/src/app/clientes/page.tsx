@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { fetchCustomers, ApiError, type CustomerRow } from "@/lib/api";
 import { getToken, getUser, clearSession, canManage, type SessionUser } from "@/lib/auth";
 import { whatsappUrl } from "@ferrestock/shared";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 const money = (v: string | number) => `$${Number(v).toLocaleString("es-AR")}`;
 
@@ -74,7 +75,7 @@ export default function CustomersPage() {
             <thead>
               <tr>
                 <th>Cliente</th>
-                <th>Teléfono</th>
+                <th>WhatsApp</th>
                 <th>Saldo (cta. cte.)</th>
                 <th></th>
               </tr>
@@ -94,12 +95,22 @@ export default function CustomersPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           title="Escribirle por WhatsApp"
-                          style={{ color: "var(--success)", fontWeight: 600 }}
+                          aria-label="Escribirle por WhatsApp"
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: 38,
+                            height: 38,
+                            borderRadius: "50%",
+                            background: "#25D366",
+                            color: "#fff",
+                          }}
                         >
-                          {c.phone}
+                          <WhatsAppIcon size={22} />
                         </a>
                       ) : (
-                        <span className="muted">{c.phone ?? "—"}</span>
+                        <span className="muted">—</span>
                       )}
                     </td>
                     <td>

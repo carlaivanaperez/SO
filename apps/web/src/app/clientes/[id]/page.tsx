@@ -12,6 +12,7 @@ import {
 } from "@/lib/api";
 import { getToken, getUser, canManage, clearSession, type SessionUser } from "@/lib/auth";
 import { whatsappUrl } from "@ferrestock/shared";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 const PAYMENTS = [
   { value: "CASH", label: "Efectivo" },
@@ -136,7 +137,9 @@ export default function CustomerDetailPage() {
                     rel="noopener noreferrer"
                     className="btn btn-success"
                     title="Escribirle por WhatsApp"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                   >
+                    <WhatsAppIcon size={18} />
                     WhatsApp
                   </a>
                 )}

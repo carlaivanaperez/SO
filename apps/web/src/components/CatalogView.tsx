@@ -164,8 +164,21 @@ export function CatalogView({ store, items }: { store: PublicStore; items: Publi
           >
             Armá tu pedido y envialo por WhatsApp 🧰
           </p>
+          {store.whatsappPhone && (
+            <div style={{ fontSize: 13, marginTop: 8 }}>
+              📱{" "}
+              <a
+                href={whatsappUrl(store.whatsappPhone, "Hola! Quiero hacer una consulta.")!}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "#141414", fontWeight: 700, textDecoration: "underline" }}
+              >
+                {store.whatsappPhone.replace(/^\+549?/, "")} (WhatsApp)
+              </a>
+            </div>
+          )}
           {store.address && (
-            <div style={{ fontSize: 13, marginTop: 8 }}>📍 {store.address}</div>
+            <div style={{ fontSize: 13, marginTop: 2 }}>📍 {store.address}</div>
           )}
           {store.hours && (
             <div style={{ fontSize: 13, marginTop: 2, whiteSpace: "pre-line" }}>🕒 {store.hours}</div>

@@ -154,13 +154,15 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
           <p
             style={{
               margin: 0,
-              fontWeight: 600,
               fontSize: 24,
+              fontWeight: 800,
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
               fontFamily:
-                '"Segoe Script", "Bradley Hand", "Snell Roundhand", "Brush Script MT", cursive',
+                'Impact, Haettenschweiler, "Franklin Gothic Bold", "Arial Narrow", "Oswald", sans-serif',
             }}
           >
-            Armá tu pedido y envialo por WhatsApp. 🧰
+            Armá tu pedido y envialo por WhatsApp 🧰
           </p>
           {store.address && (
             <div style={{ fontSize: 13, marginTop: 8 }}>📍 {store.address}</div>

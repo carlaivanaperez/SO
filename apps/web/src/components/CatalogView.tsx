@@ -11,6 +11,11 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
   const [activeCat, setActiveCat] = useState<string | null>(null); // null = todos
   const [cart, setCart] = useState<Record<string, number>>({});
   const [showCart, setShowCart] = useState(false);
+  // Datos del pedido (para el mensaje de WhatsApp).
+  const [customerName, setCustomerName] = useState("");
+  const [comment, setComment] = useState("");
+  const [method, setMethod] = useState<"PICKUP" | "DELIVERY">("PICKUP");
+  const [address, setAddress] = useState("");
 
   // Cargar/guardar el pedido en el navegador (persiste entre visitas).
   useEffect(() => {
@@ -91,7 +96,14 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
     const lines = cartLines.map(
       (l) => `- ${l.qty} x ${l.item.name}${l.item.brand ? ` (${l.item.brand})` : ""} — ${money(Number(l.item.price) * l.qty)}`
     );
-    return `Hola! Quiero hacer este pedido:\n${lines.join("\n")}\n\nTotal: ${money(total)}`;
+    const header = customerName.trim() ? `Hola! Soy ${customerName.trim()}.` : "Hola!";
+    const entrega =
+      method === "DELIVERY"
+        ? `Entrega: Envío${address.trim() ? ` a ${address.trim()}` : ""}`
+        : "Entrega: Retiro en el local";
+    let msg = `${header}\nQuiero hacer este pedido:\n${lines.join("\n")}\n\nTotal: ${money(total)}\n\n${entrega}`;
+    if (comment.trim()) msg += `\nComentario: ${comment.trim()}`;
+    return msg;
   };
   const orderWa = store.whatsappPhone && count > 0 ? whatsappUrl(store.whatsappPhone, orderMessage()) : null;
 
@@ -270,6 +282,53 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
                 <p style={{ fontSize: 20, fontWeight: 800, textAlign: "right", marginTop: 12 }}>
                   Total: {money(total)}
                 </p>
+
+                {/* Datos del pedido */}
+                <label className="field">
+                  <span className="label">Tu nombre</span>
+                  <input
+                    className="input"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="Ej: Juan Pérez"
+                  />
+                </label>
+
+                <div className="field">
+                  <span className="label">¿Cómo lo querés recibir?</span>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <Chip active={method === "PICKUP"} onClick={() => setMethod("PICKUP")}>
+                      Retiro en el local
+                    </Chip>
+                    <Chip active={method === "DELIVERY"} onClick={() => setMethod("DELIVERY")}>
+                      Envío
+                    </Chip>
+                  </div>
+                </div>
+
+                {method === "DELIVERY" && (
+                  <label className="field">
+                    <span className="label">Dirección de envío</span>
+                    <input
+                      className="input"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="Calle, número, barrio…"
+                    />
+                  </label>
+                )}
+
+                <label className="field">
+                  <span className="label">Comentario (opcional)</span>
+                  <textarea
+                    className="input"
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    rows={2}
+                    placeholder="Ej: lo necesito para el sábado"
+                  />
+                </label>
+
                 {orderWa ? (
                   <a href={orderWa} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-block">
                     Enviar pedido por WhatsApp

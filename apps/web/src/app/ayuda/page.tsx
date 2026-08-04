@@ -315,9 +315,10 @@ export default function HelpPage() {
           <p className="muted">
             El cliente ve nombre, precio y si <strong>hay stock o no</strong> — nunca ve el costo, el
             margen ni la cantidad exacta. Puede <strong>filtrar por rubro</strong>, y armar un{" "}
-            <strong>pedido</strong> (tipo carrito) con varios productos: cuando termina, toca{" "}
-            <strong>“Enviar pedido por WhatsApp”</strong> y te llega la lista completa con el total a
-            tu WhatsApp. No es una compra online: es un pedido para que lo coordinen con vos.
+            <strong>pedido</strong> (tipo carrito) con varios productos. Antes de enviarlo pone su{" "}
+            <strong>nombre</strong>, elige <strong>retiro o envío</strong> (con dirección) y un{" "}
+            <strong>comentario</strong>; al tocar <strong>“Enviar pedido por WhatsApp”</strong> te llega
+            todo a tu WhatsApp. No es una compra online: es un pedido para que lo coordinen con vos.
           </p>
         </>
       ),

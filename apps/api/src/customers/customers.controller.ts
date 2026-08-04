@@ -33,9 +33,9 @@ export class CustomersController {
     return this.customers.findOne(id);
   }
 
-  // Alta/edición y pagos: ADMIN y MANAGER.
+  // Alta de cliente: cualquier usuario autenticado (el vendedor puede cargarlo
+  // en el momento de una venta a cuenta). La edición y los pagos sí requieren rol.
   @Post()
-  @Roles("ADMIN", "MANAGER")
   create(@Body(new ZodValidationPipe(createCustomerSchema)) dto: CreateCustomerInput) {
     return this.customers.create(dto);
   }

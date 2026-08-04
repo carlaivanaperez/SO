@@ -326,7 +326,12 @@ export default function PosPage() {
                   <span className="muted">(opcional)</span>
                 )}
               </span>
-              <CustomerPicker customers={customers} value={customerId} onChange={setCustomerId} />
+              <CustomerPicker
+                customers={customers}
+                value={customerId}
+                onChange={setCustomerId}
+                onCreated={(c) => setCustomers((prev) => [c, ...prev])}
+              />
             </div>
 
             <p style={{ fontSize: 22, fontWeight: 800, color: "var(--text)" }}>

@@ -136,6 +136,21 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
+          {manage && (
+            <div className="kpi kpi-money">
+              <div className="kpi-label">
+                Ganancia estimada hoy{" "}
+                {summary?.today.profitPartial && (
+                  <span title="Hay productos vendidos sin costo cargado; la ganancia real es mayor.">
+                    ⚠️
+                  </span>
+                )}
+              </div>
+              <div className="kpi-value">
+                {summary ? money(summary.today.profit ?? 0) : "…"}
+              </div>
+            </div>
+          )}
           <div className="kpi kpi-danger">
             <div className="kpi-label">Productos con poco stock</div>
             <div className="kpi-value">{summary ? summary.lowStock.count : "…"}</div>

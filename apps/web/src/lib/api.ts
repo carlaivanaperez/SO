@@ -142,7 +142,12 @@ export async function fetchWarehouses(): Promise<Warehouse[]> {
 }
 
 export type DashboardSummary = {
-  today: { count: number; revenue: string | null };
+  today: {
+    count: number;
+    revenue: string | null;
+    profit: string | null; // ganancia estimada de hoy (solo gestión)
+    profitPartial: boolean; // true si hay ítems sin costo cargado (estimación parcial)
+  };
   lowStock: { count: number; items: { id: string; name: string; stock: string; min: string }[] };
   recentSales: {
     id: string;

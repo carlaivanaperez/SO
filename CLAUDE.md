@@ -261,7 +261,10 @@ Lo que **falta**, en orden sugerido:
    ya está: cálculo neto vs neto (costo y venta con IVA incluido) en
    `packages/shared/src/margin.ts` (`computeMargin`, `priceFromMargin`), ganancia y
    margen en vivo en `ProductForm` (+ "sugerir precio por margen"), y reporte
-   `/margenes` (solo ADMIN/MANAGER) vía `GET /api/reports/margins`.
+   `/margenes` (solo ADMIN/MANAGER) vía `GET /api/reports/margins`. El dashboard
+   muestra **"Ganancia estimada hoy"** (solo gestión): `reports.summary` suma la
+   ganancia neta de los ítems vendidos hoy usando el costo actual (`today.profit`,
+   `today.profitPartial` si hay ítems sin costo).
 2. **Tests**: hay tests unitarios (Jest) de `sales.service` (totales/IVA,
    congelado de precio, descuento de stock) y `products.service` (ajuste de
    stock, historial de precios). Falta cubrir el **matching de WhatsApp** y sumar

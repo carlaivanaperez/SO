@@ -23,7 +23,7 @@ export class ReportsService {
   async summary(canSeeRevenue: boolean) {
     const since = startOfTodayAr();
 
-    const [todayAgg, recentSales, products] = await Promise.all([
+    const [todayAgg, recentSales, products, todayItems] = await Promise.all([
       // Ventas completadas de hoy: cantidad y total facturado.
       this.prisma.sale.aggregate({
         where: { status: SaleStatus.COMPLETED, createdAt: { gte: since } },
@@ -51,6 +51,18 @@ export class ReportsService {
         where: { active: true },
         select: { id: true, name: true, stockItems: { select: { quantity: true, minQuantity: true } } },
       }),
+      // Ítems vendidos hoy con el costo del producto, para la ganancia estimada
+      // (solo ADMIN/MANAGER). Se estima con el costo actual del producto.
+      canSeeRevenue
+        ? this.prisma.saleItem.findMany({
+            where: { sale: { status: SaleStatus.COMPLETED, createdAt: { gte: since } } },
+            select: {
+              quantity: true,
+              total: true,
+              product: { select: { costPrice: true, taxRate: true } },
+            },
+          })
+        : Promise.resolve([]),
     ]);
 
     const lowStockItems = products
@@ -61,10 +73,28 @@ export class ReportsService {
       })
       .filter((p) => p.low);
 
+    // Ganancia estimada de hoy (neto vs neto). Solo cuenta ítems con costo
+    // cargado (> 0); los que no tienen costo no suman ganancia (se marca aparte).
+    let profit = new Prisma.Decimal(0);
+    let itemsWithoutCost = 0;
+    for (const it of todayItems) {
+      const cost = it.product.costPrice;
+      if (cost.lte(0)) {
+        itemsWithoutCost++;
+        continue;
+      }
+      const divisor = it.product.taxRate.div(100).plus(1); // ej: 1.21
+      const lineNet = it.total.div(divisor); // venta neta de la línea
+      const costNet = cost.div(divisor).times(it.quantity); // costo neto de la línea
+      profit = profit.plus(lineNet.minus(costNet));
+    }
+
     return {
       today: {
         count: todayAgg._count._all,
         revenue: canSeeRevenue ? (todayAgg._sum.total ?? new Prisma.Decimal(0)).toString() : null,
+        profit: canSeeRevenue ? profit.toDecimalPlaces(2).toString() : null,
+        profitPartial: canSeeRevenue ? itemsWithoutCost > 0 : false,
       },
       lowStock: {
         count: lowStockItems.length,

@@ -255,7 +255,14 @@ export default function HelpPage() {
       audience: "manage",
       body: (
         <ul>
-          <li>El <strong>Panel</strong> muestra las ventas del día, el dinero ingresado y las últimas ventas.</li>
+          <li>
+            El <strong>Panel</strong> muestra las ventas del día, el <strong>dinero ingresado</strong>,
+            la <strong>ganancia estimada de hoy</strong> (lo que te queda, sin IVA) y las últimas ventas.
+          </li>
+          <li>
+            Si al lado de la ganancia ves un ⚠️, es porque hay productos vendidos <strong>sin costo
+            cargado</strong>: cargá el costo (en el producto) para que la ganancia sea exacta.
+          </li>
           <li>La pestaña <strong>“Ventas”</strong> es el historial completo, con filtros por fecha, medio de pago y producto.</li>
           <li>Entrando a una venta podés ver el detalle e <strong>imprimir</strong> el comprobante.</li>
         </ul>

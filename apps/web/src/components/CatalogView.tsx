@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { whatsappUrl, type PublicCatalogItem, type StoreSettings } from "@ferrestock/shared";
+import { getToken } from "@/lib/auth";
 
 const money = (v: string | number) => `$${Number(v).toLocaleString("es-AR")}`;
 const NO_CAT = "__none__";
@@ -11,6 +13,9 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
   const [activeCat, setActiveCat] = useState<string | null>(null); // null = todos
   const [cart, setCart] = useState<Record<string, number>>({});
   const [showCart, setShowCart] = useState(false);
+  // ¿El que mira tiene sesión de staff en este navegador? (el cliente no).
+  const [isStaff, setIsStaff] = useState(false);
+  useEffect(() => setIsStaff(!!getToken()), []);
   // Datos del pedido (para el mensaje de WhatsApp).
   const [customerName, setCustomerName] = useState("");
   const [comment, setComment] = useState("");
@@ -109,6 +114,15 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
 
   return (
     <div style={{ maxWidth: 1040, margin: "0 auto", padding: "24px 16px 96px" }}>
+      {/* Solo para el staff logueado (el cliente no tiene sesión → no lo ve) */}
+      {isStaff && (
+        <div style={{ marginBottom: 12 }}>
+          <Link href="/panel" className="btn btn-outline">
+            ← Volver al panel
+          </Link>
+        </div>
+      )}
+
       {/* Encabezado del negocio (con logo) */}
       <header
         style={{

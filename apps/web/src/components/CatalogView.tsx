@@ -1,14 +1,14 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { whatsappUrl, type PublicCatalogItem, type StoreSettings } from "@ferrestock/shared";
+import { whatsappUrl, type PublicCatalogItem, type PublicStore } from "@ferrestock/shared";
 import { getToken } from "@/lib/auth";
 
 const money = (v: string | number) => `$${Number(v).toLocaleString("es-AR")}`;
 const NO_CAT = "__none__";
 const CART_KEY = "ferrestock.pedido";
 
-export function CatalogView({ store, items }: { store: StoreSettings; items: PublicCatalogItem[] }) {
+export function CatalogView({ store, items }: { store: PublicStore; items: PublicCatalogItem[] }) {
   const [search, setSearch] = useState("");
   const [activeCat, setActiveCat] = useState<string | null>(null); // null = todos
   const [cart, setCart] = useState<Record<string, number>>({});

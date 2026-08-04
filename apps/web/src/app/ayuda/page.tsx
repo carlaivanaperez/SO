@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { getToken, getUser, canManage, type SessionUser } from "@/lib/auth";
+import { fetchStoreSettings } from "@/lib/api";
+import { whatsappUrl } from "@ferrestock/shared";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 type Audience = "all" | "manage" | "admin";
@@ -15,6 +17,7 @@ type Topic = { emoji: string; title: string; audience: Audience; body: ReactNode
 export default function HelpPage() {
   const router = useRouter();
   const [user, setUser] = useState<SessionUser | null>(null);
+  const [supportPhone, setSupportPhone] = useState<string | null>(null);
 
   useEffect(() => {
     if (!getToken()) {
@@ -22,6 +25,9 @@ export default function HelpPage() {
       return;
     }
     setUser(getUser());
+    fetchStoreSettings()
+      .then((s) => setSupportPhone(s.supportPhone))
+      .catch(() => {});
   }, [router]);
 
   const manage = canManage(user);
@@ -388,16 +394,18 @@ export default function HelpPage() {
             <li>Si te pide iniciar sesión de nuevo, es por seguridad: volvé a entrar y listo.</li>
             <li>Ante cualquier duda, hablá con el encargado o el administrador del negocio.</li>
           </ul>
-          <a
-            href="https://wa.me/5493624721664?text=Hola,%20necesito%20ayuda%20con%20el%20sistema."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-success"
-            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-          >
-            <WhatsAppIcon size={18} />
-            Contactar al administrador por WhatsApp
-          </a>
+          {whatsappUrl(supportPhone) && (
+            <a
+              href={whatsappUrl(supportPhone, "Hola, necesito ayuda con el sistema.")!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-success"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+            >
+              <WhatsAppIcon size={18} />
+              Contactar al administrador por WhatsApp
+            </a>
+          )}
         </div>
 
         <p style={{ marginTop: 16 }}>

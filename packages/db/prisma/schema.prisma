@@ -326,6 +326,7 @@ model StoreSettings {
   whatsappPhone String?  @map("whatsapp_phone") // E.164, ej: +5493624721664
   address       String?  @map("address") // dirección visible en el catálogo público
   hours         String?  @map("hours") // horarios de atención (texto libre)
+  supportPhone  String?  @map("support_phone") // WhatsApp del administrador (soporte al staff, NO público)
   updatedAt     DateTime @updatedAt @map("updated_at")
 
   @@map("store_settings")

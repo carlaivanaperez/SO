@@ -28,6 +28,7 @@ export default function ConfigPage() {
   const [storePhone, setStorePhone] = useState("");
   const [storeAddress, setStoreAddress] = useState("");
   const [storeHours, setStoreHours] = useState("");
+  const [storeSupport, setStoreSupport] = useState("");
   const [storeSaving, setStoreSaving] = useState(false);
   const [storeMsg, setStoreMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -67,6 +68,7 @@ export default function ConfigPage() {
         setStorePhone(s.whatsappPhone ?? "");
         setStoreAddress(s.address ?? "");
         setStoreHours(s.hours ?? "");
+        setStoreSupport(s.supportPhone ?? "");
       })
       .catch(() => {});
   }, [router]);
@@ -84,10 +86,12 @@ export default function ConfigPage() {
         whatsappPhone: storePhone.trim() || null,
         address: storeAddress.trim() || null,
         hours: storeHours.trim() || null,
+        supportPhone: storeSupport.trim() || null,
       });
       setStorePhone(s.whatsappPhone ?? "");
       setStoreAddress(s.address ?? "");
       setStoreHours(s.hours ?? "");
+      setStoreSupport(s.supportPhone ?? "");
       setStoreMsg({ ok: true, text: "Datos del negocio guardados." });
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
@@ -204,6 +208,20 @@ export default function ConfigPage() {
               rows={2}
               maxLength={300}
             />
+          </label>
+          <label className="field">
+            <span className="label">WhatsApp de soporte (administrador)</span>
+            <input
+              className="input"
+              value={storeSupport}
+              onChange={(e) => setStoreSupport(e.target.value)}
+              placeholder="Ej: 3624721664"
+              inputMode="tel"
+            />
+            <span className="muted" style={{ fontSize: 12 }}>
+              Es el número que aparece en “Ayuda” para que el equipo consulte. No se muestra en el
+              catálogo público.
+            </span>
           </label>
           {storeMsg && (
             <p className={`alert ${storeMsg.ok ? "alert-success" : "alert-error"}`}>

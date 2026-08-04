@@ -18,30 +18,41 @@ export class SettingsService {
       whatsappPhone: s.whatsappPhone,
       address: s.address,
       hours: s.hours,
+      supportPhone: s.supportPhone,
     };
   }
 
   async updateStore(dto: UpdateStoreSettingsInput): Promise<StoreSettings> {
-    let phone: string | null = null;
-    if (dto.whatsappPhone && dto.whatsappPhone.trim()) {
-      const normalized = normalizeArPhone(dto.whatsappPhone);
-      if (!normalized) {
-        throw new BadRequestException("Revisá el WhatsApp del negocio (ej: 3624721664)");
-      }
-      phone = normalized;
-    }
+    const phone = this.normalizePhone(dto.whatsappPhone, "Revisá el WhatsApp del negocio (ej: 3624721664)");
+    const support = this.normalizePhone(dto.supportPhone, "Revisá el WhatsApp de soporte (ej: 3624721664)");
     const address = dto.address?.trim() || null;
     const hours = dto.hours?.trim() || null;
+    const data = {
+      storeName: dto.storeName,
+      whatsappPhone: phone,
+      address,
+      hours,
+      supportPhone: support,
+    };
     const s = await this.prisma.storeSettings.upsert({
       where: { id: 1 },
-      create: { id: 1, storeName: dto.storeName, whatsappPhone: phone, address, hours },
-      update: { storeName: dto.storeName, whatsappPhone: phone, address, hours },
+      create: { id: 1, ...data },
+      update: data,
     });
     return {
       storeName: s.storeName,
       whatsappPhone: s.whatsappPhone,
       address: s.address,
       hours: s.hours,
+      supportPhone: s.supportPhone,
     };
+  }
+
+  // Normaliza un teléfono a E.164 (o null si viene vacío); error si es inválido.
+  private normalizePhone(raw: string | null | undefined, errMsg: string): string | null {
+    if (!raw || !raw.trim()) return null;
+    const normalized = normalizeArPhone(raw);
+    if (!normalized) throw new BadRequestException(errMsg);
+    return normalized;
   }
 }

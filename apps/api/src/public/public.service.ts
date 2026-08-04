@@ -73,6 +73,15 @@ export class PublicService {
       };
     });
 
-    return { store, items };
+    // Solo los datos públicos del negocio (nunca el WhatsApp de soporte del admin).
+    return {
+      store: {
+        storeName: store.storeName,
+        whatsappPhone: store.whatsappPhone,
+        address: store.address,
+        hours: store.hours,
+      },
+      items,
+    };
   }
 }

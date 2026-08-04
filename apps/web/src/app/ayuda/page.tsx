@@ -92,6 +92,10 @@ export default function HelpPage() {
             Si un producto tiene una etiqueta de promoción, el descuento se aplica automáticamente
             (siempre que el medio de pago esté habilitado para esa promo).
           </p>
+          <p className="muted">
+            El <strong>Total ya incluye IVA</strong>: es exactamente lo que paga el cliente, sin
+            sorpresas ni sumas aparte.
+          </p>
         </>
       ),
     },

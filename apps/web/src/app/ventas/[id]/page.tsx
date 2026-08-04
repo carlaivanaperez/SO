@@ -89,11 +89,11 @@ export default function SaleDetailPage() {
 
             <div className="card" style={{ maxWidth: 320, marginLeft: "auto" }}>
               <div className="list-row">
-                <span className="muted">Subtotal</span>
+                <span className="muted">Subtotal (sin IVA)</span>
                 <span>{money(sale.subtotal)}</span>
               </div>
               <div className="list-row">
-                <span className="muted">IVA</span>
+                <span className="muted">IVA (incluido)</span>
                 <span>{money(sale.tax)}</span>
               </div>
               {Number(sale.discount) > 0 && (

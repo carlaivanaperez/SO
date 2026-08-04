@@ -58,19 +58,21 @@ const baseInput = (items: CreateSaleInput["items"], discount = 0): CreateSaleInp
 });
 
 describe("SalesService.create", () => {
-  it("calcula subtotal, IVA y total congelando el precio de venta del producto", async () => {
+  it("calcula el total como precio final (IVA incluido) y desglosa el IVA contenido", async () => {
     const { service, tx } = setup({ products: [product("p1", "100")] });
 
     await service.create(baseInput([{ productId: "p1", quantity: 2, discount: 0 }]), "u1");
 
     const data = tx.sale.create.mock.calls[0][0].data;
-    // 100 * 2 = 200 subtotal; IVA 21% = 42; total 242.
-    expect(data.subtotal.toString()).toBe("200");
-    expect(data.tax.toString()).toBe("42");
-    expect(data.total.toString()).toBe("242");
+    // El precio ya incluye IVA: total = 100 * 2 = 200 (lo que paga el cliente).
+    // IVA contenido (21%): 200 - 200/1.21 = 34.71; neto = 165.29.
+    expect(data.total.toString()).toBe("200");
+    expect(data.subtotal.toString()).toBe("165.29");
+    expect(data.tax.toString()).toBe("34.71");
     expect(data.status).toBe(SaleStatus.COMPLETED);
-    // El ítem guarda el precio unitario congelado.
+    // El ítem guarda el precio unitario congelado y el total final de la línea.
     expect(data.items.create[0].unitPrice.toString()).toBe("100");
+    expect(data.items.create[0].total.toString()).toBe("200");
   });
 
   it("usa el unitPrice provisto en lugar del precio del producto", async () => {
@@ -79,21 +81,23 @@ describe("SalesService.create", () => {
     await service.create(baseInput([{ productId: "p1", quantity: 1, unitPrice: 50, discount: 0 }]), "u1");
 
     const data = tx.sale.create.mock.calls[0][0].data;
-    expect(data.subtotal.toString()).toBe("50");
-    expect(data.tax.toString()).toBe("10.5"); // 50 * 21%
-    expect(data.total.toString()).toBe("60.5");
+    // Total final 50 (IVA incluido); IVA contenido 50 - 50/1.21 = 8.68; neto 41.32.
+    expect(data.total.toString()).toBe("50");
+    expect(data.subtotal.toString()).toBe("41.32");
+    expect(data.tax.toString()).toBe("8.68");
   });
 
-  it("aplica descuento por ítem y descuento global", async () => {
+  it("aplica descuento por ítem y descuento global (sobre precios con IVA incluido)", async () => {
     const { service, tx } = setup({ products: [product("p1", "100")] });
 
-    // qty 1, precio 100, descuento de ítem 10 => bruto 90; IVA 18.9; total 90+18.9-5.
+    // qty 1, precio 100, descuento de ítem 10 => línea final 90; descuento global 5 => total 85.
     await service.create(baseInput([{ productId: "p1", quantity: 1, discount: 10 }], 5), "u1");
 
     const data = tx.sale.create.mock.calls[0][0].data;
-    expect(data.subtotal.toString()).toBe("90");
-    expect(data.tax.toString()).toBe("18.9");
-    expect(data.total.toString()).toBe("103.9");
+    // neto = 90/1.21 = 74.38; IVA = 15.62; total = 74.38 + 15.62 - 5 = 85.
+    expect(data.subtotal.toString()).toBe("74.38");
+    expect(data.tax.toString()).toBe("15.62");
+    expect(data.total.toString()).toBe("85");
   });
 
   it("descuenta stock: crea un StockMovement negativo y decrementa el StockItem por ítem", async () => {

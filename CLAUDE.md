@@ -133,7 +133,10 @@ Es la **fuente de verdad**. Entidades principales:
 - **User** — staff del panel. Roles: `ADMIN`, `MANAGER`, `CASHIER`.
 - **Category** — árbol de rubros (auto-relación `parentId`).
 - **Product** — SKU, código de barras, unidad (`UNIT/KG/METER/LITER/BOX`),
-  `costPrice`, `salePrice`, `taxRate` (IVA).
+  `costPrice`, `salePrice`, `taxRate` (IVA). **`salePrice` es precio final con IVA
+  incluido** (lo que paga el cliente): en la venta el IVA no se suma, se desglosa
+  como la parte contenida (`sale.subtotal` = neto, `sale.tax` = IVA incluido,
+  `sale.total` = suma de precios finales − descuento). Ver `sales.service.create`.
 - **PriceHistory** — cada cambio de precio queda registrado.
 - **Warehouse** / **StockItem** — stock actual por depósito (snapshot) + `minQuantity` (reposición).
 - **StockMovement** — libro mayor append-only de movimientos

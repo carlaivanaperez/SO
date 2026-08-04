@@ -424,7 +424,7 @@ export default function PosPage() {
               </div>
             )}
 
-            <p style={{ fontSize: 22, fontWeight: 800, color: "var(--text)" }}>
+            <p style={{ fontSize: 22, fontWeight: 800, color: "var(--text)", marginBottom: 0 }}>
               Total: ${total.toLocaleString("es-AR")}
               {payment === "ACCOUNT" && financed && surchargePercent > 0 && (
                 <span style={{ fontSize: 14, fontWeight: 600, color: "var(--muted)" }}>
@@ -433,6 +433,7 @@ export default function PosPage() {
                 </span>
               )}
             </p>
+            <p className="muted" style={{ fontSize: 12, marginTop: 2 }}>IVA incluido</p>
 
             {error && <p className="alert alert-error">⚠️ {error}</p>}
 

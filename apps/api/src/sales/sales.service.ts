@@ -156,11 +156,15 @@ export class SalesService {
         const product = byId.get(item.productId);
         if (!product) throw new NotFoundException(`Producto ${item.productId} no existe`);
 
+        // Los precios de venta ya incluyen IVA (precio final al público). El
+        // IVA no se suma: se calcula como la parte ya contenida en el precio.
         const unitPrice = new Prisma.Decimal(item.unitPrice ?? Number(product.salePrice));
-        const lineGross = unitPrice.times(item.quantity).minus(item.discount);
-        const lineTax = lineGross.times(product.taxRate).div(100);
+        const lineFinal = unitPrice.times(item.quantity).minus(item.discount); // IVA incluido
+        const divisor = new Prisma.Decimal(product.taxRate).div(100).plus(1); // ej: 1.21
+        const lineNet = lineFinal.div(divisor).toDecimalPlaces(2); // neto sin IVA
+        const lineTax = lineFinal.minus(lineNet); // IVA contenido en el precio
 
-        subtotal = subtotal.plus(lineGross);
+        subtotal = subtotal.plus(lineNet);
         tax = tax.plus(lineTax);
 
         return {
@@ -168,10 +172,11 @@ export class SalesService {
           quantity: item.quantity,
           unitPrice,
           discount: item.discount,
-          total: lineGross,
+          total: lineFinal, // total de la línea = lo que paga el cliente (IVA incl.)
         };
       });
 
+      // total = neto + IVA − descuento = suma de precios finales − descuento.
       const baseTotal = subtotal.plus(tax).minus(dto.discount);
 
       // Recargo por financiación (0 si no se financia o no se aplica recargo).

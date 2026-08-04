@@ -120,7 +120,7 @@ export function ProductForm({ initial }: { initial: ProductDetail | null }) {
             onChange={(e) => setCostPrice(e.target.value)}
           />
         </Field>
-        <Field label="Precio de venta">
+        <Field label="Precio de venta (IVA incluido)">
           <input
             className="input"
             type="number"
@@ -131,7 +131,7 @@ export function ProductForm({ initial }: { initial: ProductDetail | null }) {
             required
           />
         </Field>
-        <Field label="IVA %">
+        <Field label="IVA % (ya incluido)">
           <input
             className="input"
             type="number"
@@ -143,6 +143,10 @@ export function ProductForm({ initial }: { initial: ProductDetail | null }) {
           />
         </Field>
       </div>
+      <p className="muted" style={{ marginTop: -4, fontSize: 13 }}>
+        Poné el precio final que paga el cliente. El IVA ya viene incluido en ese precio; el % es
+        solo para desglosarlo en el comprobante.
+      </p>
 
       {editing && (
         <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>

@@ -144,6 +144,11 @@ export default function HelpPage() {
               Entrando a un cliente ves su <strong>saldo</strong>, sus <strong>cuotas</strong> (cuáles
               están al día o vencidas) y el botón <strong>“Recordar deuda por WhatsApp”</strong>.
             </li>
+            <li>
+              En el <strong>catálogo</strong>, cada producto tiene un ícono verde de WhatsApp para{" "}
+              <strong>compartirlo en un grupo o comunidad</strong>: se abre WhatsApp con el mensaje
+              (nombre, precio y promo si tiene) y vos elegís a dónde mandarlo.
+            </li>
           </ul>
         </>
       ),

@@ -269,7 +269,10 @@ Lo que **falta**, en orden sugerido:
    ADMIN) para crear staff y asignar rol; nombres/descripciones en
    `roleLabels`/`roleDescriptions` (shared). **Clientes y cuentas corrientes** también.
 5. **Comprobante por WhatsApp** (imprimir ya está en `/ventas/[id]`). El
-   **historial de ventas** con filtros ya está hecho.
+   **historial de ventas** con filtros ya está hecho. **Compartir producto por
+   WhatsApp** a un grupo/comunidad ya está: ícono en el catálogo (`app/page.tsx`)
+   y botón en editar producto; helpers `whatsappShareUrl`/`whatsappProductMessage`
+   en `shared/common.ts` (link `wa.me/?text=` sin destinatario → abre el selector).
 6. **CI**: sin pipeline de tests automáticos aún (el deploy sí está, §12).
 
 Cuando completes un punto, actualizá esta sección y las partes relevantes del archivo.

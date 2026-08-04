@@ -54,6 +54,29 @@ export function whatsappDebtMessage(name: string, balance: number): string {
   return `Hola ${firstName}, te escribo de la ferretería. Te recordamos que tenés un saldo pendiente de $${amount} en tu cuenta. Cualquier cosa avisanos. ¡Gracias!`;
 }
 
+/**
+ * Link para COMPARTIR un texto por WhatsApp sin un destinatario fijo: abre el
+ * selector de WhatsApp para elegir a quién/qué grupo/comunidad enviarlo.
+ */
+export function whatsappShareUrl(text: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(text)}`;
+}
+
+/**
+ * Mensaje para promocionar un producto en un grupo/comunidad de WhatsApp.
+ * `promoLabel` ya viene formateado (ej: "20% off" o "2x1"); se omite si no hay.
+ */
+export function whatsappProductMessage(
+  name: string,
+  price: number,
+  promoLabel?: string | null
+): string {
+  const lines = [`🛠️ *${name}*`, `💵 Precio: $${price.toLocaleString("es-AR")}`];
+  if (promoLabel) lines.push(`🏷️ ¡En promo! ${promoLabel}`);
+  lines.push("", "¡Te esperamos en la ferretería! 🧰");
+  return lines.join("\n");
+}
+
 /** Paginación estándar para todos los listados. */
 export const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

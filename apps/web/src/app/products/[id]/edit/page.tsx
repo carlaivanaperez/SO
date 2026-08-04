@@ -7,6 +7,8 @@ import { ProductForm } from "@/components/ProductForm";
 import { ProductPromotions } from "@/components/ProductPromotions";
 import { fetchProduct, ApiError, type ProductDetail } from "@/lib/api";
 import { getToken, getUser, canManage, clearSession, type SessionUser } from "@/lib/auth";
+import { whatsappShareUrl, whatsappProductMessage } from "@ferrestock/shared";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -43,7 +45,22 @@ export default function EditProductPage() {
       <AppHeader user={user} />
       <main className="container" style={{ maxWidth: 720 }}>
         <Link href="/">← Volver al panel</Link>
-        <h1 style={{ marginTop: 8 }}>Editar producto</h1>
+        <div className="page-head" style={{ marginTop: 8 }}>
+          <h1 style={{ margin: 0 }}>Editar producto</h1>
+          {product && (
+            <a
+              href={whatsappShareUrl(whatsappProductMessage(product.name, Number(product.salePrice)))}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-success"
+              title="Compartir por WhatsApp (grupo/comunidad)"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+            >
+              <WhatsAppIcon size={18} />
+              Compartir
+            </a>
+          )}
+        </div>
         {error && <p className="alert alert-error">⚠️ {error}</p>}
         {!product && !error && <p className="muted">Cargando…</p>}
         {product && <ProductForm initial={product} />}

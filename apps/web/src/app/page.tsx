@@ -13,6 +13,8 @@ import {
   type ActivePromotion,
 } from "@/lib/api";
 import { getToken, getUser, clearSession, canManage, type SessionUser } from "@/lib/auth";
+import { whatsappShareUrl, whatsappProductMessage } from "@ferrestock/shared";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 const PAYMENT_LABELS: Record<string, string> = {
   CASH: "Efectivo",
@@ -232,15 +234,48 @@ export default function DashboardPage() {
                   <tr key={p.id}>
                     <td className="muted">{p.sku}</td>
                     <td>
-                      <strong>{p.name}</strong>
-                      {promoMap[p.id] && (
-                        <span className="badge badge-warn" style={{ marginLeft: 8 }}>
-                          🏷️{" "}
-                          {promoMap[p.id]!.type === "PERCENT"
-                            ? `${Number(promoMap[p.id]!.percent ?? 0)}% off`
-                            : "2x1"}
-                        </span>
-                      )}
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <strong>{p.name}</strong>
+                        {promoMap[p.id] && (
+                          <span className="badge badge-warn">
+                            🏷️{" "}
+                            {promoMap[p.id]!.type === "PERCENT"
+                              ? `${Number(promoMap[p.id]!.percent ?? 0)}% off`
+                              : "2x1"}
+                          </span>
+                        )}
+                        {(() => {
+                          const promo = promoMap[p.id];
+                          const promoLabel = promo
+                            ? promo.type === "PERCENT"
+                              ? `${Number(promo.percent ?? 0)}% off`
+                              : "2x1"
+                            : null;
+                          const msg = whatsappProductMessage(p.name, Number(p.salePrice), promoLabel);
+                          return (
+                            <a
+                              href={whatsappShareUrl(msg)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Compartir por WhatsApp (grupo/comunidad)"
+                              aria-label="Compartir por WhatsApp"
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                width: 30,
+                                height: 30,
+                                borderRadius: "50%",
+                                background: "#25D366",
+                                color: "#fff",
+                                flexShrink: 0,
+                              }}
+                            >
+                              <WhatsAppIcon size={18} />
+                            </a>
+                          );
+                        })()}
+                      </span>
                     </td>
                     <td>{money(p.salePrice)}</td>
                     <td>

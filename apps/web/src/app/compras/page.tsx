@@ -57,10 +57,10 @@ export default function PurchaseListPage() {
           <Link href="/">← Volver al panel</Link>
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn btn-outline" onClick={downloadCsv} disabled={items.length === 0}>
-              ⬇️ Descargar (Excel)
+              Descargar (Excel)
             </button>
             <button className="btn btn-primary" onClick={() => window.print()} disabled={items.length === 0}>
-              🖨️ Imprimir
+              Imprimir
             </button>
           </div>
         </div>

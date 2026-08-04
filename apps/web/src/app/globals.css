@@ -200,16 +200,30 @@ h3 {
   text-decoration: none;
   border: 2px solid transparent; /* reserva el espacio del borde */
   border-radius: 12px;
+  transition: transform 0.09s ease, color 0.15s ease;
 }
 .tt-item:hover {
   color: var(--text);
   text-decoration: none;
 }
-/* Pestaña activa: recuadro amarillo delineado, puntas redondeadas */
+.tt-item:active {
+  transform: scale(0.94); /* sensación de "presión" al tocar */
+}
+/* Pestaña activa: recuadro amarillo delineado, puntas redondeadas, con un
+   pequeño rebote elástico al seleccionarse. */
 .tt-item.active {
   background: var(--yellow);
   border-color: #1b1b1b;
   color: #141414;
+  animation: tabPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tabPop {
+  from {
+    transform: scale(0.8);
+  }
+  to {
+    transform: scale(1);
+  }
 }
 .nav .user {
   color: #9fb2c6;

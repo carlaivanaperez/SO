@@ -57,7 +57,7 @@ export default function SaleDetailPage() {
                 <p className="muted" style={{ margin: 0 }}>{fmtDate(sale.createdAt)}</p>
               </div>
               <button className="btn btn-outline" onClick={() => window.print()}>
-                🖨️ Imprimir
+                Imprimir
               </button>
             </div>
 

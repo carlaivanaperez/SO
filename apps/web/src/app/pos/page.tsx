@@ -158,7 +158,7 @@ export default function PosPage() {
     <>
       <AppHeader user={user} />
       <main className="container">
-        <h1>🧾 Punto de venta</h1>
+        <h1>Punto de venta</h1>
 
         {done && (
           <p className="alert alert-success">

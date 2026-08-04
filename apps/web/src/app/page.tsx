@@ -116,7 +116,7 @@ export default function DashboardPage() {
         <div className="page-head">
           <h1 style={{ margin: 0 }}>Panel</h1>
           <Link href="/pos" className="btn btn-primary">
-            🧾 Nueva venta
+            Nueva venta
           </Link>
         </div>
 
@@ -163,7 +163,7 @@ export default function DashboardPage() {
               <h2 style={{ fontSize: 16, margin: 0 }}>Poco stock</h2>
               {summary && summary.lowStock.count > 0 && (
                 <Link href="/compras" className="btn btn-primary" style={{ padding: "6px 12px", fontSize: 13 }}>
-                  📋 Planilla de compra
+                  Planilla de compra
                 </Link>
               )}
             </div>

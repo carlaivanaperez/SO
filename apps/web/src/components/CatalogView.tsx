@@ -115,22 +115,38 @@ export function CatalogView({ store, items }: { store: StoreSettings; items: Pub
           background: "var(--yellow)",
           color: "#141414",
           borderRadius: 16,
-          padding: "22px 24px",
+          padding: "24px",
           marginBottom: 20,
           display: "flex",
           alignItems: "center",
-          gap: 16,
+          gap: 20,
+          flexWrap: "wrap",
         }}
       >
-        <img
-          src="/logo.png"
-          alt={store.storeName}
-          style={{ height: 64, width: 64, objectFit: "contain", flexShrink: 0 }}
-          onError={(e) => (e.currentTarget.style.display = "none")}
-        />
-        <div>
-          <h1 style={{ margin: 0, fontSize: 26 }}>{store.storeName}</h1>
-          <p style={{ margin: "4px 0 0", fontWeight: 600 }}>
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 16,
+            padding: 12,
+            flexShrink: 0,
+            boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
+            lineHeight: 0,
+          }}
+        >
+          <img
+            src="/logo.png"
+            alt={store.storeName}
+            style={{ height: 110, width: 110, objectFit: "contain", display: "block" }}
+            onError={(e) => {
+              // Si no hay logo, ocultamos el recuadro blanco entero.
+              const box = e.currentTarget.parentElement;
+              if (box) box.style.display = "none";
+            }}
+          />
+        </div>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <h1 style={{ margin: 0, fontSize: 30 }}>{store.storeName}</h1>
+          <p style={{ margin: "6px 0 0", fontWeight: 600, fontSize: 16 }}>
             Armá tu pedido y envialo por WhatsApp. 🧰
           </p>
         </div>

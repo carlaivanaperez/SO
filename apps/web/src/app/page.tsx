@@ -1,5 +1,6 @@
 import type { PublicCatalog } from "@ferrestock/shared";
 import { CatalogView } from "@/components/CatalogView";
+import { CatalogLoader } from "@/components/CatalogLoader";
 
 // Página PÚBLICA (sin login) para clientes. Server component → el HTML se arma
 // en el servidor (bueno para SEO). La parte interactiva (filtros + carrito de
@@ -27,15 +28,9 @@ async function getCatalog(): Promise<PublicCatalog | null> {
 export default async function CatalogoPage() {
   const data = await getCatalog();
 
-  if (!data) {
-    return (
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "40px 16px" }}>
-        <p className="alert alert-error">
-          ⚠️ No pudimos cargar el catálogo en este momento. Probá de nuevo en un ratito.
-        </p>
-      </div>
-    );
-  }
+  // Si el servidor no respondió (típico: servidor gratuito "dormido"), dejamos
+  // que el navegador reintente solo con un mensaje amable (no pantalla en blanco).
+  if (!data) return <CatalogLoader />;
 
   return <CatalogView store={data.store} items={data.items} />;
 }

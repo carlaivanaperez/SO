@@ -12,6 +12,8 @@ export type InstallmentOption = z.infer<typeof installmentOptionSchema>;
 
 export const financeConfigSchema = z.object({
   lateFeeDailyPercent: z.coerce.number().min(0).max(100),
+  // Tope de deuda de cuenta corriente. 0 = sin tope.
+  creditLimit: z.coerce.number().min(0),
   options: z
     .array(installmentOptionSchema)
     .min(1, "Tiene que haber al menos una opción de cuotas"),

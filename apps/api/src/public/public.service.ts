@@ -52,23 +52,24 @@ export class PublicService {
       }),
     ]);
 
-    const promoByProduct = new Map(promos.map((p) => [p.productId, p]));
+    // Un producto puede tener varias promos: las juntamos por producto.
+    const promosByProduct = new Map<string, string[]>();
+    for (const pr of promos) {
+      const label = pr.type === "PERCENT" ? `${Number(pr.percent ?? 0)}% off` : "2x1";
+      const arr = promosByProduct.get(pr.productId) ?? [];
+      if (!arr.includes(label)) arr.push(label);
+      promosByProduct.set(pr.productId, arr);
+    }
 
     const items: PublicCatalogItem[] = products.map((p) => {
       const stock = p.stockItems.reduce((s, i) => s.plus(i.quantity), new Prisma.Decimal(0));
-      const promo = promoByProduct.get(p.id);
-      const promoLabel = promo
-        ? promo.type === "PERCENT"
-          ? `${Number(promo.percent ?? 0)}% off`
-          : "2x1"
-        : null;
       return {
         id: p.id,
         name: p.name,
         brand: p.brand,
         price: p.salePrice.toString(),
         available: stock.greaterThan(0),
-        promoLabel,
+        promoLabels: promosByProduct.get(p.id) ?? [],
         category: p.category ? { id: p.category.id, name: p.category.name } : null,
       };
     });

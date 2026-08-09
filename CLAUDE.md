@@ -154,8 +154,11 @@ Es la **fuente de verdad**. Entidades principales:
   del cliente a las obligaciones por vencimiento (más vieja primero) y la **mora**
   se calcula al leer (`lateFeeDailyPercent` × días de atraso). Ver `customers.service.findOne`.
 - **FinanceConfig** (fila única id=1) + **InstallmentOption** — configuración
-  editable por ADMIN: escala de recargo por cuotas (ej. 3→10%, 6→25%) y tasa de
-  mora (%/día). Se crean con valores por defecto de forma perezosa (`FinanceService.getConfig`),
+  editable por ADMIN: escala de recargo por cuotas (ej. 3→10%, 6→25%), tasa de
+  mora (%/día) y **`creditLimit`** (tope de deuda de cuenta corriente, default
+  $50.000, 0=sin tope). `sales.service.create` rechaza una venta ACCOUNT si la
+  **deuda acumulada** del cliente (cargos−pagos−NC, `customerDebt`) alcanza el tope;
+  el POS lo avisa y deshabilita. Se crean con valores por defecto de forma perezosa (`FinanceService.getConfig`),
   así funciona en prod sin seed. Endpoints en `apps/api/src/finance/` (`GET /api/finance/config`
   abierto; `PATCH` solo ADMIN). Helpers de cálculo puros en `packages/shared/src/finance.ts`.
 - **StoreSettings** (fila única id=1) — datos del negocio (nombre, WhatsApp E.164,
@@ -294,7 +297,10 @@ Lo que **falta**, en orden sugerido:
    cliente nunca ve el login. Incluye **filtro por rubro** (agrupado por categoría)
    y un **carrito de pedido** (client component `CatalogView`, persistido en
    localStorage) que arma la lista y la envía por WhatsApp al negocio (no es compra
-   online). `GET /api/public/catalog`
+   online). Un producto **sin stock** no se agrega al pedido: muestra botón
+   "Consultar disponibilidad" por WhatsApp. Un producto puede tener **varias
+   promos**; el POS aplica la de mayor descuento válida para el medio de pago
+   (`lineInfo`), y el catálogo muestra todas (`promoLabels`). `GET /api/public/catalog`
    (endpoint abierto, `apps/api/src/public/`) — solo expone nombre, marca, precio
    final, "Disponible/Sin stock" y promo; nunca costo/margen/stock exacto. Cada
    producto tiene botón "Reservar/pedir por WhatsApp" al número del negocio
@@ -315,7 +321,7 @@ Lo que **falta**, en orden sugerido:
 Cuando completes un punto, actualizá esta sección y las partes relevantes del archivo.
 
 **Estado de verificación:** `pnpm typecheck` pasa en los 5 paquetes,
-`pnpm test` corre 19 tests unitarios en verde (incluye cálculo de cuotas/mora) y
+`pnpm test` corre 26 tests unitarios en verde (incluye cuotas/mora y límite de deuda) y
 `pnpm --filter @ferrestock/web build` compila la web. Corriendo en producción
 (§12) contra Postgres en Neon.
 

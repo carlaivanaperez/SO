@@ -14,6 +14,8 @@ function setup(opts: {
   products: ReturnType<typeof product>[];
   warehouse?: { id: string } | null;
   stock?: { productId: string; quantity: Prisma.Decimal }[];
+  debt?: number; // deuda actual del cliente (para probar el límite)
+  creditLimit?: number;
 }) {
   const tx = {
     sale: {
@@ -34,12 +36,17 @@ function setup(opts: {
       ),
     },
     stockItem: { findMany: jest.fn().mockResolvedValue(stock) },
+    // Deuda del cliente = cargos − pagos − créditos (para el límite de cuenta cte).
+    sale: { aggregate: jest.fn().mockResolvedValue({ _sum: { total: opts.debt ?? 0 } }) },
+    customerPayment: { aggregate: jest.fn().mockResolvedValue({ _sum: { amount: 0 } }) },
+    creditNote: { aggregate: jest.fn().mockResolvedValue({ _sum: { amount: 0 } }) },
     $transaction: jest.fn((cb: (t: typeof tx) => unknown) => cb(tx)),
   };
-  // Finance mock: escala con 3 cuotas al 10% de recargo y mora 0,3%/día.
+  // Finance mock: escala de cuotas, mora y tope de cuenta corriente.
   const finance = {
     getConfig: jest.fn().mockResolvedValue({
       lateFeeDailyPercent: 0.3,
+      creditLimit: opts.creditLimit ?? 50000,
       options: [
         { installments: 1, surchargePercent: 0 },
         { installments: 3, surchargePercent: 10 },
@@ -170,6 +177,38 @@ describe("SalesService.create", () => {
     const sum = rows.reduce((s: number, r: { amount: Prisma.Decimal }) => s + Number(r.amount), 0);
     expect(sum).toBeCloseTo(110, 2);
     expect(rows.map((r: { number: number }) => r.number)).toEqual([1, 2, 3]);
+  });
+
+  it("bloquea una venta a cuenta si el cliente alcanzó el límite de deuda", async () => {
+    // Cliente con deuda 60.000 y límite 50.000 → no puede comprar a cuenta.
+    const { service } = setup({ products: [product("p1", "100")], debt: 60000, creditLimit: 50000 });
+    await expect(
+      service.create(
+        {
+          paymentMethod: "ACCOUNT",
+          customerId: "clzcustomer000000000000000",
+          discount: 0,
+          items: [{ productId: "p1", quantity: 1, discount: 0 }],
+          applyFinancingSurcharge: false,
+        },
+        "u1"
+      )
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it("permite la venta a cuenta si la deuda está por debajo del límite", async () => {
+    const { service, tx } = setup({ products: [product("p1", "100")], debt: 10000, creditLimit: 50000 });
+    await service.create(
+      {
+        paymentMethod: "ACCOUNT",
+        customerId: "clzcustomer000000000000000",
+        discount: 0,
+        items: [{ productId: "p1", quantity: 1, discount: 0 }],
+        applyFinancingSurcharge: false,
+      },
+      "u1"
+    );
+    expect(tx.sale.create).toHaveBeenCalled();
   });
 
   it("cuenta corriente en cuotas SIN aplicar recargo: divide el total sin sumar nada", async () => {

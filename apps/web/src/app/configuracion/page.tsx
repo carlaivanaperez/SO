@@ -18,6 +18,7 @@ export default function ConfigPage() {
   const router = useRouter();
   const [user, setUser] = useState<SessionUser | null>(null);
   const [lateFee, setLateFee] = useState("");
+  const [creditLimit, setCreditLimit] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
@@ -47,6 +48,7 @@ export default function ConfigPage() {
     fetchFinanceConfig()
       .then((cfg) => {
         setLateFee(String(cfg.lateFeeDailyPercent));
+        setCreditLimit(String(cfg.creditLimit));
         setRows(
           cfg.options.map((o) => ({
             installments: String(o.installments),
@@ -142,7 +144,11 @@ export default function ConfigPage() {
     }
     setSaving(true);
     try {
-      await updateFinanceConfig({ lateFeeDailyPercent: Number(lateFee || 0), options });
+      await updateFinanceConfig({
+        lateFeeDailyPercent: Number(lateFee || 0),
+        creditLimit: Number(creditLimit || 0),
+        options,
+      });
       setOk(true);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
@@ -319,6 +325,25 @@ export default function ConfigPage() {
               step="0.01"
               value={lateFee}
               onChange={(e) => setLateFee(e.target.value)}
+            />
+          </label>
+        </section>
+
+        <section className="card" style={{ marginTop: 16 }}>
+          <h2 style={{ fontSize: 16 }}>Límite de deuda (cuenta corriente)</h2>
+          <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+            Monto máximo que un cliente puede deber. Si su deuda alcanza este tope, no se le pueden
+            cargar nuevas ventas a cuenta hasta que pague. Poné 0 para no usar límite.
+          </p>
+          <label className="field" style={{ maxWidth: 260 }}>
+            <span className="label">Tope de deuda ($)</span>
+            <input
+              className="input"
+              type="number"
+              min={0}
+              step="1000"
+              value={creditLimit}
+              onChange={(e) => setCreditLimit(e.target.value)}
             />
           </label>
         </section>

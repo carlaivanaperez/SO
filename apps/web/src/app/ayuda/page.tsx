@@ -129,6 +129,11 @@ export default function HelpPage() {
           <p className="muted">
             Si no marcás cuotas, la cuenta queda “abierta”: el cliente paga cuando puede.
           </p>
+          <p className="muted">
+            🚫 <strong>Límite de deuda:</strong> si el cliente ya debe más del tope configurado (en
+            Ajustes), el sistema <strong>no deja</strong> cargarle una venta a cuenta hasta que pague.
+            Igual podés cobrarle en efectivo, tarjeta o transferencia.
+          </p>
         </>
       ),
     },
@@ -257,7 +262,11 @@ export default function HelpPage() {
             <li>Elegí <strong>2x1</strong> o un <strong>% de descuento</strong>, con fecha de inicio y fin.</li>
             <li>Marcá para qué <strong>medios de pago</strong> vale (ej: solo efectivo).</li>
           </ol>
-          <p className="muted">En el catálogo y en la venta se ve una etiqueta cuando el producto está en promoción.</p>
+          <p className="muted">
+            Un producto puede tener <strong>varias promos</strong> (por ej. una para efectivo y otra
+            para tarjeta). Al vender, se aplica <strong>la de mayor descuento</strong> entre las que
+            valen para el medio de pago elegido. En el catálogo se ven todas.
+          </p>
         </>
       ),
     },
@@ -326,7 +335,9 @@ export default function HelpPage() {
           </ol>
           <p className="muted">
             El cliente ve nombre, precio y si <strong>hay stock o no</strong> — nunca ve el costo, el
-            margen ni la cantidad exacta. Puede <strong>filtrar por rubro</strong>, y armar un{" "}
+            margen ni la cantidad exacta. Un producto <strong>sin stock</strong> no se puede agregar
+            al pedido: en su lugar muestra un botón para <strong>consultar disponibilidad</strong> por
+            WhatsApp. Puede <strong>filtrar por rubro</strong>, y armar un{" "}
             <strong>pedido</strong> (tipo carrito) con varios productos. Antes de enviarlo pone su{" "}
             <strong>nombre</strong>, elige <strong>retiro o envío</strong> (con dirección) y un{" "}
             <strong>comentario</strong>; al tocar <strong>“Enviar pedido por WhatsApp”</strong> te llega
@@ -345,6 +356,7 @@ export default function HelpPage() {
           <ul>
             <li><strong>Recargo por cuotas</strong>: qué cantidades de cuotas se ofrecen y qué % se suma en cada una.</li>
             <li><strong>Interés por mora</strong>: el % por día que suma una cuota vencida (poné 0 para no cobrar).</li>
+            <li><strong>Límite de deuda</strong>: el tope que un cliente puede deber (por defecto $50.000). Si lo alcanza, no se le puede vender a cuenta hasta que pague. Poné 0 para no usar límite.</li>
           </ul>
           <p className="muted">Con la inflación conviene revisarlos cada tanto. Los cambios valen para las ventas nuevas.</p>
         </>

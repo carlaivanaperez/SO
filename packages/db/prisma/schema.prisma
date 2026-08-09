@@ -304,6 +304,7 @@ model Installment {
 model FinanceConfig {
   id                  Int      @id @default(1)
   lateFeeDailyPercent Decimal  @default(0.3) @map("late_fee_daily_percent") @db.Decimal(6, 3) // interés por mora, % por día
+  creditLimit         Decimal  @default(50000) @map("credit_limit") @db.Decimal(12, 2) // tope de deuda de cuenta corriente (0 = sin tope)
   updatedAt           DateTime @updatedAt @map("updated_at")
 
   @@map("finance_config")

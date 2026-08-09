@@ -211,7 +211,21 @@ export function CatalogView({ store, items }: { store: PublicStore; items: Publi
           )}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 14 }}>
             {sec.items.map((p) => (
-              <ProductCard key={p.id} p={p} qty={cart[p.id] ?? 0} onAdd={() => add(p.id)} onQty={(n) => setQty(p.id, n)} />
+              <ProductCard
+                key={p.id}
+                p={p}
+                qty={cart[p.id] ?? 0}
+                onAdd={() => add(p.id)}
+                onQty={(n) => setQty(p.id, n)}
+                consultHref={
+                  store.whatsappPhone
+                    ? whatsappUrl(
+                        store.whatsappPhone,
+                        `Hola! Estoy interesado/a en "${p.name}"${p.brand ? ` (${p.brand})` : ""}, que ahora figura sin stock. ¿Me avisan cuándo vuelve a haber disponibilidad?`
+                      )
+                    : null
+                }
+              />
             ))}
           </div>
         </section>
@@ -422,17 +436,21 @@ function ProductCard({
   qty,
   onAdd,
   onQty,
+  consultHref,
 }: {
   p: PublicCatalogItem;
   qty: number;
   onAdd: () => void;
   onQty: (n: number) => void;
+  consultHref: string | null;
 }) {
   return (
     <div className="card" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <div style={{ flex: 1 }}>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
-          {p.promoLabel && <span className="badge badge-warn">🏷️ {p.promoLabel}</span>}
+          {p.promoLabels.map((lbl) => (
+            <span key={lbl} className="badge badge-warn">🏷️ {lbl}</span>
+          ))}
           <span className={`badge ${p.available ? "badge-ok" : "badge-low"}`}>
             {p.available ? "Disponible" : "Sin stock"}
           </span>
@@ -442,7 +460,23 @@ function ProductCard({
         <div style={{ fontSize: 20, fontWeight: 800, marginTop: 6 }}>{money(p.price)}</div>
       </div>
 
-      {qty > 0 ? (
+      {!p.available ? (
+        // Sin stock: no se puede agregar; se ofrece consultar disponibilidad.
+        consultHref ? (
+          <a
+            href={consultHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-outline btn-block"
+          >
+            Consultar disponibilidad
+          </a>
+        ) : (
+          <span className="muted" style={{ fontSize: 12, textAlign: "center" }}>
+            Sin stock por ahora
+          </span>
+        )
+      ) : qty > 0 ? (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <QtyControls qty={qty} onQty={onQty} />
           <span className="muted" style={{ fontSize: 13 }}>en el pedido</span>

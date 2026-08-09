@@ -44,7 +44,8 @@ export default function PosPage() {
   const [payment, setPayment] = useState<PaymentMethod>("CASH");
   const [customers, setCustomers] = useState<CustomerRow[]>([]);
   const [customerId, setCustomerId] = useState("");
-  const [promos, setPromos] = useState<Record<string, ActivePromotion>>({});
+  // Un producto puede tener varias promos; guardamos todas por producto.
+  const [promos, setPromos] = useState<Record<string, ActivePromotion[]>>({});
   // Financiación en cuotas (solo cuenta corriente).
   const [financeConfig, setFinanceConfig] = useState<FinanceConfig | null>(null);
   const [financed, setFinanced] = useState(false);
@@ -62,7 +63,11 @@ export default function PosPage() {
     setUser(getUser());
     fetchCustomers().then(setCustomers).catch(() => {});
     fetchActivePromotions()
-      .then((list) => setPromos(Object.fromEntries(list.map((p) => [p.productId, p]))))
+      .then((list) => {
+        const map: Record<string, ActivePromotion[]> = {};
+        for (const p of list) (map[p.productId] ??= []).push(p);
+        setPromos(map);
+      })
       .catch(() => {});
     fetchFinanceConfig()
       .then((cfg) => {
@@ -82,17 +87,28 @@ export default function PosPage() {
   }, []);
 
   // Info de una línea con su promoción aplicada (descuento congelado en la venta).
-  // La promo solo se aplica si el medio de pago elegido está habilitado.
+  // Si el producto tiene varias promos, se elige la de MAYOR descuento entre las
+  // que aplican al medio de pago elegido.
   function lineInfo(l: CartLine) {
     const unit = Number(l.product.salePrice);
     const gross = unit * l.quantity;
-    const promo = promos[l.product.id];
-    const applies = promo ? promoAppliesToPayment(promo.paymentMethods, payment) : false;
-    const discount =
-      promo && applies
-        ? promoLineDiscount(promo.type, promo.percent ? Number(promo.percent) : null, unit, l.quantity)
-        : 0;
-    return { unit, gross, discount, total: gross - discount, promo, applies };
+    const list = promos[l.product.id] ?? [];
+    let best: ActivePromotion | null = null;
+    let discount = 0;
+    for (const promo of list) {
+      if (!promoAppliesToPayment(promo.paymentMethods, payment)) continue;
+      const dsc = promoLineDiscount(
+        promo.type,
+        promo.percent ? Number(promo.percent) : null,
+        unit,
+        l.quantity
+      );
+      if (dsc > discount) {
+        discount = dsc;
+        best = promo;
+      }
+    }
+    return { unit, gross, discount, total: gross - discount, promo: best, applies: best !== null, hasPromos: list.length > 0 };
   }
 
   useEffect(() => {
@@ -143,6 +159,16 @@ export default function PosPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [cart, promos, payment]
   );
+
+  // Límite de deuda: si el cliente elegido alcanzó el tope, no se puede vender a
+  // cuenta corriente (se bloquea el POS, y la API lo rechaza igual por las dudas).
+  const selectedCustomer = customers.find((c) => c.id === customerId) ?? null;
+  const creditLimit = financeConfig?.creditLimit ?? 0;
+  const overLimit =
+    payment === "ACCOUNT" &&
+    !!selectedCustomer &&
+    creditLimit > 0 &&
+    Number(selectedCustomer.balance) >= creditLimit;
 
   // Preview de financiación (estimado; el total real lo calcula la API con IVA).
   const surchargePercent =
@@ -263,7 +289,7 @@ export default function PosPage() {
                           : "2x1"}
                       </span>
                     )}
-                    {info.promo && !info.applies && (
+                    {info.hasPromos && !info.applies && (
                       <span style={{ marginLeft: 6, fontSize: 12, color: "var(--muted)" }}>
                         (promo no aplica a este pago)
                       </span>
@@ -365,6 +391,15 @@ export default function PosPage() {
               />
             </div>
 
+            {overLimit && selectedCustomer && (
+              <p className="alert alert-error">
+                🚫 {selectedCustomer.name} debe $
+                {Number(selectedCustomer.balance).toLocaleString("es-AR")} y alcanzó el límite de
+                cuenta corriente (${creditLimit.toLocaleString("es-AR")}). Tiene que pagar antes de
+                una nueva venta a cuenta. Podés cobrarle en efectivo/tarjeta/transferencia.
+              </p>
+            )}
+
             {/* Financiación en cuotas (solo cuenta corriente) */}
             {payment === "ACCOUNT" && financeConfig && (
               <div className="card" style={{ padding: 12, marginTop: 4, background: "var(--bg)" }}>
@@ -439,10 +474,10 @@ export default function PosPage() {
 
             <button
               onClick={confirm}
-              disabled={cart.length === 0 || saving}
+              disabled={cart.length === 0 || saving || overLimit}
               className="btn btn-success btn-block"
             >
-              {saving ? "Registrando…" : "Confirmar venta"}
+              {saving ? "Registrando…" : overLimit ? "Cliente sobre el límite de deuda" : "Confirmar venta"}
             </button>
           </section>
         </div>

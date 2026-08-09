@@ -6,7 +6,7 @@ import {
   type CreateSaleInput,
   type SalesQuery,
 } from "@ferrestock/shared";
-import { Prisma, SaleStatus, StockMovementType } from "@ferrestock/db";
+import { Prisma, PaymentMethod, SaleStatus, StockMovementType } from "@ferrestock/db";
 import { FinanceService } from "../finance/finance.service";
 
 // Argentina no usa horario de verano: offset fijo -3h.
@@ -100,21 +100,35 @@ export class SalesService {
       throw new BadRequestException("Las ventas a cuenta corriente requieren elegir un cliente");
     }
 
-    // Plan de cuotas: solo aplica a cuenta corriente. Resuelve el recargo (%)
-    // de la escala vigente. `financePlan` es null si la venta no se financia.
-    const financeInstallments =
-      dto.paymentMethod === "ACCOUNT" && dto.installments ? dto.installments : null;
+    // `financePlan` es null si la venta no se financia en cuotas.
     let financePlan: { count: number; surchargePercent: number } | null = null;
-    if (financeInstallments) {
+
+    if (dto.paymentMethod === "ACCOUNT" && dto.customerId) {
       const config = await this.finance.getConfig();
-      const surcharge = surchargeForInstallments(config.options, financeInstallments);
-      if (surcharge === null) {
-        throw new BadRequestException(`La opción de ${financeInstallments} cuotas no está habilitada`);
+
+      // Límite de deuda: si el cliente ya alcanzó el tope de cuenta corriente,
+      // no se le puede cargar una nueva venta a cuenta hasta que baje su deuda.
+      if (config.creditLimit > 0) {
+        const debt = await this.customerDebt(dto.customerId);
+        if (debt >= config.creditLimit) {
+          throw new BadRequestException(
+            `El cliente debe $${debt.toLocaleString("es-AR")} y alcanzó el límite de cuenta corriente ` +
+              `($${config.creditLimit.toLocaleString("es-AR")}). Tiene que pagar antes de una nueva venta a cuenta.`
+          );
+        }
       }
-      financePlan = {
-        count: financeInstallments,
-        surchargePercent: dto.applyFinancingSurcharge ? surcharge : 0,
-      };
+
+      // Plan de cuotas: resuelve el recargo (%) de la escala vigente.
+      if (dto.installments) {
+        const surcharge = surchargeForInstallments(config.options, dto.installments);
+        if (surcharge === null) {
+          throw new BadRequestException(`La opción de ${dto.installments} cuotas no está habilitada`);
+        }
+        financePlan = {
+          count: dto.installments,
+          surchargePercent: dto.applyFinancingSurcharge ? surcharge : 0,
+        };
+      }
     }
 
     const productIds = dto.items.map((i) => i.productId);
@@ -257,5 +271,23 @@ export class SalesService {
       where: { id },
       include: { items: { include: { product: true } }, customer: true },
     });
+  }
+
+  // Deuda acumulada de un cliente (sin importar cuándo compró):
+  // ventas a cuenta (cargos) − pagos − notas de crédito. Positivo = debe.
+  private async customerDebt(customerId: string): Promise<number> {
+    const [charges, payments, credits] = await Promise.all([
+      this.prisma.sale.aggregate({
+        where: { customerId, paymentMethod: PaymentMethod.ACCOUNT, status: SaleStatus.COMPLETED },
+        _sum: { total: true },
+      }),
+      this.prisma.customerPayment.aggregate({ where: { customerId }, _sum: { amount: true } }),
+      this.prisma.creditNote.aggregate({ where: { customerId }, _sum: { amount: true } }),
+    ]);
+    return (
+      Number(charges._sum.total ?? 0) -
+      Number(payments._sum.amount ?? 0) -
+      Number(credits._sum.amount ?? 0)
+    );
   }
 }

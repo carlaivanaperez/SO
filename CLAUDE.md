@@ -91,7 +91,11 @@ schema. En local con Docker, ambas apuntan a la misma URL. El `.env` vive en la
 JS** (`dist/`, `main` apunta ahí) porque la API los consume en runtime. Por eso
 las tasks `dev`/`typecheck`/`test` dependen de `^build` en `turbo.json`: Turbo
 los compila antes. Si corrés un workspace suelto con `pnpm --filter`, buildeá
-`shared`/`db` primero.
+`shared`/`db` primero. **`@ferrestock/db` tiene `postinstall: prisma generate`**:
+Turbo cachea el build de `db` (restaura `dist/` sin re-generar el cliente Prisma), y
+sin el `postinstall` el cliente queda sin generar en CI → los tipos Prisma se vuelven
+`any` y el build de la API falla con errores `TS7006` (implicit any). El `postinstall`
+lo genera en cada `pnpm install`, independiente de la caché.
 
 **Postgres en la nube (Neon):** alternativa gratis a Docker, sin depender de una
 PC. En Neon: crear proyecto → copiar las dos cadenas ("Pooled connection" →

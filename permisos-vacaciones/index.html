@@ -183,13 +183,14 @@
   .link-btn:hover { background: var(--surface-2); color: var(--ink); }
   .link-btn.danger:hover { color: var(--bad); background: var(--bad-soft); }
   .empty { text-align: center; padding: 34px 16px; color: var(--ink-faint); font-size: 13px; }
+  .vac-input { width: 82px; padding: 6px 9px; font-size: 13px; }
 
   /* ---- Forms ---- */
   .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
   .field { display: flex; flex-direction: column; gap: 5px; }
   .field.full { grid-column: 1 / -1; }
   label { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
-  input[type=text], input[type=date], select, textarea {
+  input[type=text], input[type=date], input[type=number], select, textarea {
     background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
     padding: 9px 11px; font-size: 13.5px; width: 100%; transition: border-color .15s;
   }
@@ -306,6 +307,7 @@
       <button data-view="nuevo">Nuevo registro</button>
       <button data-view="registros">Registros</button>
       <button data-view="calendario">Calendario</button>
+      <button data-view="vacaciones">Vacaciones</button>
       <button data-view="personas">Personas</button>
       <button data-view="datos">Datos</button>
       <button data-view="ajustes">Ajustes</button>
@@ -443,6 +445,20 @@
       </div>
     </section>
 
+    <!-- ============ VACACIONES ============ -->
+    <section class="view" id="view-vacaciones">
+      <div class="card">
+        <div class="cal-head">
+          <button class="btn small" id="vacPrev">‹ Año anterior</button>
+          <div class="cal-title" id="vacTitle"></div>
+          <button class="btn small" id="vacNext">Año siguiente ›</button>
+        </div>
+        <p class="card-desc">Saldo de vacaciones por persona para el año seleccionado. Los <strong>días asignados</strong> se editan acá (según antigüedad/convenio) y quedan guardados por año. Los <strong>usados</strong> se calculan de los registros de tipo Vacaciones (días corridos, por año de inicio, sin contar rechazados).</p>
+        <div class="table-wrap" id="vacWrap"></div>
+        <div class="kpi-grid" id="vacTotals" style="margin-top:18px;margin-bottom:0"></div>
+      </div>
+    </section>
+
     <!-- ============ PERSONAS ============ -->
     <section class="view" id="view-personas">
       <div class="card">
@@ -507,6 +523,11 @@
             <input type="text" id="s-tec-label" placeholder="técnico/a" maxlength="40" />
             <span class="hint">Es el rol que no puede ausentarse en simultáneo. Ej: “técnico/a”, “operador/a”, “guardia”.</span>
           </div>
+          <div class="field" style="margin-bottom:16px">
+            <label for="s-vac-default">Días de vacaciones por año (por defecto)</label>
+            <input type="number" id="s-vac-default" min="0" max="365" step="1" placeholder="14" />
+            <span class="hint">Se usa como base cuando una persona no tiene un valor propio ese año. En Argentina suele ser 14 / 21 / 28 / 35 días corridos según antigüedad.</span>
+          </div>
           <div class="form-actions">
             <button type="submit" class="btn primary">Guardar ajustes</button>
             <button type="button" class="btn ghost" id="resetSettings">Restaurar valores por defecto</button>
@@ -557,7 +578,7 @@
   };
   const AVATAR_COLORS = ["#3b5bdb", "#0e7490", "#b8730a", "#7c3aed", "#0f766e", "#be185d", "#4d7c0f"];
 
-  const DEFAULT_SETTINGS = { areaName: "Ingeniería de Datos", tecLabel: "técnico/a" };
+  const DEFAULT_SETTINGS = { areaName: "Ingeniería de Datos", tecLabel: "técnico/a", vacDefault: 14 };
   const defaultState = {
     settings: { ...DEFAULT_SETTINGS },
     people: [
@@ -570,6 +591,7 @@
 
   let state = load();
   let calRef = firstOfMonth(new Date());
+  let vacYear = new Date().getFullYear();
 
   function load() {
     try {
@@ -605,6 +627,11 @@
     document.title = "Permisos, Licencias y Vacaciones · " + areaName();
     document.getElementById("s-area").value = S().areaName || "";
     document.getElementById("s-tec-label").value = S().tecLabel || "";
+    document.getElementById("s-vac-default").value = vacDefault();
+  }
+  function vacDefault() {
+    const n = Number(S().vacDefault);
+    return Number.isFinite(n) && n >= 0 ? n : DEFAULT_SETTINGS.vacDefault;
   }
 
   // ---------- Utilidades de fecha (sin zona horaria) ----------
@@ -826,6 +853,55 @@
     grid.innerHTML = html;
   }
 
+  // ---------- Render: Vacaciones (saldo) ----------
+  function assignedVac(person, year) {
+    const byYear = person.vacByYear || {};
+    const v = byYear[String(year)];
+    return (v === undefined || v === null || v === "") ? vacDefault() : Number(v);
+  }
+  function hasOwnVac(person, year) {
+    const byYear = person.vacByYear || {};
+    const v = byYear[String(year)];
+    return !(v === undefined || v === null || v === "");
+  }
+  function usedVac(personId, year) {
+    return activeEntries()
+      .filter(e => e.personId === personId && e.tipo === "Vacaciones" && parseD(e.desde).getFullYear() === year)
+      .reduce((s, e) => s + daysBetween(e.desde, e.hasta), 0);
+  }
+  function renderVacaciones() {
+    document.getElementById("vacTitle").textContent = "Saldo de vacaciones · " + vacYear;
+    const wrap = document.getElementById("vacWrap");
+    let totAsig = 0, totUsad = 0;
+    const rows = state.people.map(p => {
+      const asig = assignedVac(p, vacYear);
+      const usad = usedVac(p.id, vacYear);
+      const disp = asig - usad;
+      totAsig += asig; totUsad += usad;
+      const pct = asig > 0 ? Math.min(100, (usad / asig) * 100) : (usad > 0 ? 100 : 0);
+      const barColor = disp < 0 ? "var(--bad)" : (disp <= Math.max(1, asig * 0.15) ? "var(--warn)" : "var(--vac)");
+      return `<tr>
+        <td>${personCellHTML(p.id)}</td>
+        <td><input type="number" min="0" max="365" step="1" class="vac-input" data-vac="${p.id}"
+             value="${asig}" title="${hasOwnVac(p, vacYear) ? "Valor propio de " + vacYear : "Valor por defecto — editá para fijarlo en " + vacYear}"
+             style="${hasOwnVac(p, vacYear) ? "" : "color:var(--ink-faint);"}" /></td>
+        <td><strong>${usad}</strong> <span style="color:var(--ink-faint);font-size:12px">día${usad === 1 ? "" : "s"}</span></td>
+        <td><strong style="color:${disp < 0 ? "var(--bad)" : "var(--ink)"}">${disp}</strong>${disp < 0 ? ' <span class="badge-tec" style="color:var(--bad);background:var(--bad-soft)">EXCEDIDO</span>' : ""}</td>
+        <td style="min-width:130px"><div class="bar-track" style="height:18px"><div class="bar-seg" style="width:${pct}%;background:${barColor}"></div></div></td>
+      </tr>`;
+    }).join("");
+    wrap.innerHTML = `<table><thead><tr>
+      <th>Persona</th><th>Asignados</th><th>Usados / pedidos</th><th>Disponibles</th><th>Uso</th>
+      </tr></thead><tbody>${rows}</tbody></table>`;
+
+    document.getElementById("vacTotals").innerHTML = [
+      { label: "Días asignados (total)", value: totAsig, color: "var(--accent)", sub: `${state.people.length} personas · año ${vacYear}` },
+      { label: "Días usados / pedidos", value: totUsad, color: "var(--vac)", sub: "Vacaciones no rechazadas" },
+      { label: "Días disponibles", value: totAsig - totUsad, color: (totAsig - totUsad) < 0 ? "var(--bad)" : "var(--ok)", sub: "Saldo del área" }
+    ].map(k => `<div class="kpi"><div class="stripe" style="background:${k.color}"></div>
+      <div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${esc(k.sub)}</div></div>`).join("");
+  }
+
   // ---------- Render: Personas ----------
   function renderPersonas() {
     const list = document.getElementById("personList");
@@ -862,6 +938,7 @@
     renderDashboard();
     renderRegistros();
     renderCalendar();
+    renderVacaciones();
     renderPersonas();
   }
 
@@ -985,6 +1062,25 @@
   // ---------- Calendario nav ----------
   document.getElementById("calPrev").addEventListener("click", () => { calRef = new Date(calRef.getFullYear(), calRef.getMonth() - 1, 1); renderCalendar(); });
   document.getElementById("calNext").addEventListener("click", () => { calRef = new Date(calRef.getFullYear(), calRef.getMonth() + 1, 1); renderCalendar(); });
+
+  // ---------- Vacaciones: navegación y edición de asignados ----------
+  document.getElementById("vacPrev").addEventListener("click", () => { vacYear--; renderVacaciones(); });
+  document.getElementById("vacNext").addEventListener("click", () => { vacYear++; renderVacaciones(); });
+  document.getElementById("vacWrap").addEventListener("change", function (ev) {
+    const input = ev.target;
+    if (!input.dataset.vac) return;
+    const p = personById(input.dataset.vac);
+    if (!p) return;
+    let n = parseInt(input.value, 10);
+    if (!Number.isFinite(n) || n < 0) n = 0;
+    if (!p.vacByYear) p.vacByYear = {};
+    p.vacByYear[String(vacYear)] = n;
+    save();
+    toast(`Asignados ${n} días a ${p.nombre.split(" ")[0]} para ${vacYear}`);
+    // Diferir el re-render: reemplazar la tabla dentro del propio evento change
+    // (con el input perdiendo el foco) rompe innerHTML en algunos navegadores.
+    setTimeout(() => { renderVacaciones(); renderDashboard(); }, 0);
+  });
 
   // ---------- Personas ----------
   const personDialog = document.getElementById("personDialog");
@@ -1117,6 +1213,8 @@
     ev.preventDefault();
     S().areaName = document.getElementById("s-area").value.trim() || DEFAULT_SETTINGS.areaName;
     S().tecLabel = document.getElementById("s-tec-label").value.trim() || DEFAULT_SETTINGS.tecLabel;
+    const vd = parseInt(document.getElementById("s-vac-default").value, 10);
+    S().vacDefault = Number.isFinite(vd) && vd >= 0 ? vd : DEFAULT_SETTINGS.vacDefault;
     save(); renderAll(); toast("Ajustes guardados");
   });
   document.getElementById("resetSettings").addEventListener("click", function () {

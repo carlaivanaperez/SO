@@ -27,11 +27,15 @@ solapamientos entre técnicos y exportación a Excel/CSV.
   coordinación no tiene esta restricción.
 - **Registros:** tabla con filtros por persona, tipo, estado y búsqueda por
   motivo; editar y borrar.
-- **Vacaciones (saldo):** por año y por persona muestra **días asignados**
-  (editables según antigüedad/convenio, se guardan por año), **usados/pedidos**
-  (calculados de los registros de tipo Vacaciones, en días corridos, por año de
-  inicio y sin contar rechazados) y **disponibles**. Marca en rojo si alguien se
-  excede y muestra totales del área. El valor por defecto se configura en Ajustes.
+- **Vacaciones (saldo):** por año y por persona muestra **días asignados**,
+  **usados/pedidos** (calculados de los registros de tipo Vacaciones, en días
+  corridos, por año de inicio y sin contar rechazados) y **disponibles**. Marca
+  en rojo si alguien se excede y muestra totales del área.
+  - **Cada persona tiene sus propios días** (no todos tienen 14): se definen en
+    **Personas → Días de vacaciones por año** según su antigüedad/convenio.
+  - Prioridad del cálculo: **valor propio del año** (editado en la tabla, útil
+    cuando cambia la antigüedad) → **días de la persona** → **valor por defecto**
+    del área (Ajustes).
 - **Calendario:** vista mensual con quién está ausente cada día.
 - **Personas:** alta/edición; marcá quién es técnico/a.
 - **Datos:** exportar **CSV** (separado por `;`, abre en Excel es-AR),

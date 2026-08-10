@@ -453,7 +453,7 @@
           <div class="cal-title" id="vacTitle"></div>
           <button class="btn small" id="vacNext">Año siguiente ›</button>
         </div>
-        <p class="card-desc">Saldo de vacaciones por persona para el año seleccionado. Los <strong>días asignados</strong> se editan acá (según antigüedad/convenio) y quedan guardados por año. Los <strong>usados</strong> se calculan de los registros de tipo Vacaciones (días corridos, por año de inicio, sin contar rechazados).</p>
+        <p class="card-desc">Saldo de vacaciones por persona para el año seleccionado. Los <strong>días asignados</strong> salen de cada persona (definí sus días en <em>Personas</em> según antigüedad); editarlos acá fija un valor solo para <strong>este año</strong> (útil cuando cambia la antigüedad). Los <strong>usados</strong> se calculan de los registros de tipo Vacaciones (días corridos, por año de inicio, sin contar rechazados).</p>
         <div class="table-wrap" id="vacWrap"></div>
         <div class="kpi-grid" id="vacTotals" style="margin-top:18px;margin-bottom:0"></div>
       </div>
@@ -552,6 +552,11 @@
         <div class="field" style="margin-bottom:14px">
           <label for="p-name">Nombre y apellido</label>
           <input type="text" id="p-name" required placeholder="Ej: Juan Pérez" />
+        </div>
+        <div class="field" style="margin-bottom:14px">
+          <label for="p-vac">Días de vacaciones por año</label>
+          <input type="number" id="p-vac" min="0" max="365" step="1" placeholder="Por defecto del área" />
+          <span class="hint">Según su antigüedad/convenio (ej. 14, 21, 28, 35). Si lo dejás vacío, usa el valor por defecto de Ajustes. Podés ajustar un año puntual desde la pestaña Vacaciones.</span>
         </div>
         <div class="field" style="margin-bottom:6px">
           <label style="display:flex;align-items:center;gap:9px;cursor:pointer">
@@ -854,16 +859,20 @@
   }
 
   // ---------- Render: Vacaciones (saldo) ----------
-  function assignedVac(person, year) {
-    const byYear = person.vacByYear || {};
-    const v = byYear[String(year)];
-    return (v === undefined || v === null || v === "") ? vacDefault() : Number(v);
+  function isSet(v) { return !(v === undefined || v === null || v === ""); }
+  function personVacDefault(person) {
+    const n = Number(person.vacDefault);
+    return (isSet(person.vacDefault) && Number.isFinite(n) && n >= 0) ? n : null;
   }
-  function hasOwnVac(person, year) {
-    const byYear = person.vacByYear || {};
-    const v = byYear[String(year)];
-    return !(v === undefined || v === null || v === "");
+  // Prioridad: valor del año (tabla) → días de la persona → valor global de Ajustes
+  function vacInfo(person, year) {
+    const y = (person.vacByYear || {})[String(year)];
+    if (isSet(y)) return { value: Number(y), source: "year" };
+    const pd = personVacDefault(person);
+    if (pd !== null) return { value: pd, source: "person" };
+    return { value: vacDefault(), source: "global" };
   }
+  function assignedVac(person, year) { return vacInfo(person, year).value; }
   function usedVac(personId, year) {
     return activeEntries()
       .filter(e => e.personId === personId && e.tipo === "Vacaciones" && parseD(e.desde).getFullYear() === year)
@@ -874,17 +883,21 @@
     const wrap = document.getElementById("vacWrap");
     let totAsig = 0, totUsad = 0;
     const rows = state.people.map(p => {
-      const asig = assignedVac(p, vacYear);
+      const info = vacInfo(p, vacYear);
+      const asig = info.value;
       const usad = usedVac(p.id, vacYear);
       const disp = asig - usad;
       totAsig += asig; totUsad += usad;
       const pct = asig > 0 ? Math.min(100, (usad / asig) * 100) : (usad > 0 ? 100 : 0);
       const barColor = disp < 0 ? "var(--bad)" : (disp <= Math.max(1, asig * 0.15) ? "var(--warn)" : "var(--vac)");
+      const srcTitle = info.source === "year" ? "Valor propio de " + vacYear
+        : info.source === "person" ? "Días de la persona (editá para fijar solo " + vacYear + ")"
+        : "Valor por defecto del área (editá para fijarlo)";
       return `<tr>
         <td>${personCellHTML(p.id)}</td>
         <td><input type="number" min="0" max="365" step="1" class="vac-input" data-vac="${p.id}"
-             value="${asig}" title="${hasOwnVac(p, vacYear) ? "Valor propio de " + vacYear : "Valor por defecto — editá para fijarlo en " + vacYear}"
-             style="${hasOwnVac(p, vacYear) ? "" : "color:var(--ink-faint);"}" /></td>
+             value="${asig}" title="${srcTitle}"
+             style="${info.source === "global" ? "color:var(--ink-faint);" : ""}" /></td>
         <td><strong>${usad}</strong> <span style="color:var(--ink-faint);font-size:12px">día${usad === 1 ? "" : "s"}</span></td>
         <td><strong style="color:${disp < 0 ? "var(--bad)" : "var(--ink)"}">${disp}</strong>${disp < 0 ? ' <span class="badge-tec" style="color:var(--bad);background:var(--bad-soft)">EXCEDIDO</span>' : ""}</td>
         <td style="min-width:130px"><div class="bar-track" style="height:18px"><div class="bar-seg" style="width:${pct}%;background:${barColor}"></div></div></td>
@@ -911,7 +924,7 @@
         <span class="avatar" style="background:${avatarColor(p.id)}">${initials(p.nombre)}</span>
         <div class="person-meta">
           <div class="pn">${esc(p.nombre)} ${p.tecnico ? `<span class="badge-tec">${esc(tecLabelUpper())}</span>` : ""}</div>
-          <div class="pr">${count} registro${count === 1 ? "" : "s"}${p.tecnico ? " · sujeto a regla de no solapamiento" : " · sin restricción de solapamiento"}</div>
+          <div class="pr">${count} registro${count === 1 ? "" : "s"} · ${personVacDefault(p) === null ? vacDefault() + " días vac/año (por defecto)" : personVacDefault(p) + " días vac/año"}${p.tecnico ? " · regla de no solapamiento" : ""}</div>
         </div>
         <div class="row-actions">
           <button class="link-btn" data-pedit="${p.id}">Editar</button>
@@ -1092,14 +1105,17 @@
       const p = personById(id);
       document.getElementById("p-id").value = p.id;
       document.getElementById("p-name").value = p.nombre;
+      document.getElementById("p-vac").value = personVacDefault(p) === null ? "" : personVacDefault(p);
       document.getElementById("p-tec").checked = !!p.tecnico;
       title.textContent = "Editar persona";
     } else {
       document.getElementById("p-id").value = "";
       document.getElementById("p-name").value = "";
+      document.getElementById("p-vac").value = "";
       document.getElementById("p-tec").checked = false;
       title.textContent = "Agregar persona";
     }
+    document.getElementById("p-vac").placeholder = "Por defecto: " + vacDefault();
     personDialog.showModal();
   }
   document.getElementById("personForm").addEventListener("submit", function (ev) {
@@ -1107,11 +1123,14 @@
     const id = document.getElementById("p-id").value;
     const nombre = document.getElementById("p-name").value.trim();
     const tecnico = document.getElementById("p-tec").checked;
+    const vacRaw = document.getElementById("p-vac").value;
+    const vacNum = parseInt(vacRaw, 10);
+    const vacDefaultVal = (vacRaw !== "" && Number.isFinite(vacNum) && vacNum >= 0) ? vacNum : undefined;
     if (!nombre) return;
     if (id) {
-      const p = personById(id); p.nombre = nombre; p.tecnico = tecnico;
+      const p = personById(id); p.nombre = nombre; p.tecnico = tecnico; p.vacDefault = vacDefaultVal;
     } else {
-      state.people.push({ id: "p" + uid(), nombre, tecnico });
+      state.people.push({ id: "p" + uid(), nombre, tecnico, vacDefault: vacDefaultVal });
     }
     save(); personDialog.close(); renderAll(); toast("Persona guardada");
   });

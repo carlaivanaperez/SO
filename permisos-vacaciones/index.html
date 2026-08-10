@@ -287,10 +287,16 @@
 <body>
   <header class="app">
     <div class="header-inner">
-      <div class="logo">ID</div>
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4.5" width="18" height="16" rx="2"/>
+          <path d="M3 9.5h18M8 3v3M16 3v3"/>
+          <path d="M8.5 14.5l2.2 2.2 4.3-4.3"/>
+        </svg>
+      </div>
       <div class="titles">
         <h1>Permisos, Licencias y Vacaciones</h1>
-        <p>Área de Ingeniería de Datos</p>
+        <p id="areaSubtitle">Área</p>
       </div>
       <div class="header-spacer"></div>
       <button class="icon-btn" id="themeBtn" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema">◐</button>
@@ -302,6 +308,7 @@
       <button data-view="calendario">Calendario</button>
       <button data-view="personas">Personas</button>
       <button data-view="datos">Datos</button>
+      <button data-view="ajustes">Ajustes</button>
     </nav>
   </header>
 
@@ -440,7 +447,7 @@
     <section class="view" id="view-personas">
       <div class="card">
         <h2>Personas del área</h2>
-        <p class="card-desc">Marcá como <strong>técnico/a</strong> a quienes no pueden ausentarse en simultáneo. La regla de conflicto aplica solo entre personas técnicas.</p>
+        <p class="card-desc" id="personasHelp"></p>
         <div class="person-list" id="personList"></div>
         <div class="form-actions">
           <button class="btn primary small" id="addPersonBtn">+ Agregar persona</button>
@@ -483,10 +490,34 @@
         <button class="btn small" id="wipeBtn" style="color:var(--bad);border-color:var(--bad)">Borrar todos los registros</button>
       </div>
     </section>
+
+    <!-- ============ AJUSTES ============ -->
+    <section class="view" id="view-ajustes">
+      <div class="card" style="max-width:620px">
+        <h2>Ajustes</h2>
+        <p class="card-desc">Personalizá la herramienta para tu área. Si otra área la reutiliza, solo cambia estos campos.</p>
+        <form id="settingsForm">
+          <div class="field" style="margin-bottom:16px">
+            <label for="s-area">Nombre del área</label>
+            <input type="text" id="s-area" placeholder="Ej: Ingeniería de Datos" maxlength="80" />
+            <span class="hint">Aparece en el encabezado, el pie de página y los nombres de los archivos exportados.</span>
+          </div>
+          <div class="field" style="margin-bottom:16px">
+            <label for="s-tec-label">Cómo llamás al rol crítico (opcional)</label>
+            <input type="text" id="s-tec-label" placeholder="técnico/a" maxlength="40" />
+            <span class="hint">Es el rol que no puede ausentarse en simultáneo. Ej: “técnico/a”, “operador/a”, “guardia”.</span>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn primary">Guardar ajustes</button>
+            <button type="button" class="btn ghost" id="resetSettings">Restaurar valores por defecto</button>
+          </div>
+        </form>
+      </div>
+    </section>
   </main>
 
   <footer class="app">
-    Herramienta interna · Ingeniería de Datos · Los datos se guardan localmente en tu navegador
+    Herramienta interna · <span id="footerArea">Área</span> · Los datos se guardan localmente en tu navegador
   </footer>
 
   <div class="toast" id="toast"></div>
@@ -504,7 +535,7 @@
         <div class="field" style="margin-bottom:6px">
           <label style="display:flex;align-items:center;gap:9px;cursor:pointer">
             <input type="checkbox" id="p-tec" style="width:auto" />
-            Es técnico/a (aplica la regla de no solapamiento)
+            Es <span id="dialogTecLabel">técnico/a</span> (aplica la regla de no solapamiento)
           </label>
         </div>
         <div class="form-actions">
@@ -526,7 +557,9 @@
   };
   const AVATAR_COLORS = ["#3b5bdb", "#0e7490", "#b8730a", "#7c3aed", "#0f766e", "#be185d", "#4d7c0f"];
 
+  const DEFAULT_SETTINGS = { areaName: "Ingeniería de Datos", tecLabel: "técnico/a" };
   const defaultState = {
+    settings: { ...DEFAULT_SETTINGS },
     people: [
       { id: "p1", nombre: "Luciana Campestrini", tecnico: true },
       { id: "p2", nombre: "Néstor Sosa Santander", tecnico: true },
@@ -544,6 +577,7 @@
       if (!raw) return structuredClone(defaultState);
       const parsed = JSON.parse(raw);
       if (!parsed.people || !parsed.entries) return structuredClone(defaultState);
+      parsed.settings = { ...DEFAULT_SETTINGS, ...(parsed.settings || {}) };
       return parsed;
     } catch (e) { return structuredClone(defaultState); }
   }
@@ -552,6 +586,26 @@
     catch (e) { toast("No se pudo guardar en este navegador"); }
   }
   function uid() { return "e" + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36); }
+
+  // ---------- Ajustes ----------
+  function S() { return state.settings || (state.settings = { ...DEFAULT_SETTINGS }); }
+  function areaName() { return (S().areaName || "").trim() || DEFAULT_SETTINGS.areaName; }
+  function tecLabel() { return (S().tecLabel || "").trim() || DEFAULT_SETTINGS.tecLabel; }
+  function tecLabelUpper() { return tecLabel().toUpperCase(); }
+  function slug(s) {
+    return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "area";
+  }
+  function applySettings() {
+    document.getElementById("areaSubtitle").textContent = "Área de " + areaName();
+    document.getElementById("footerArea").textContent = areaName();
+    document.getElementById("dialogTecLabel").textContent = tecLabel();
+    document.getElementById("personasHelp").innerHTML =
+      `Marcá como <strong>${esc(tecLabel())}</strong> a quienes no pueden ausentarse en simultáneo. La regla de conflicto aplica solo entre esas personas.`;
+    document.title = "Permisos, Licencias y Vacaciones · " + areaName();
+    document.getElementById("s-area").value = S().areaName || "";
+    document.getElementById("s-tec-label").value = S().tecLabel || "";
+  }
 
   // ---------- Utilidades de fecha (sin zona horaria) ----------
   function parseD(s) { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); }
@@ -613,7 +667,7 @@
   function personCellHTML(id) {
     const p = personById(id);
     const name = p ? p.nombre : "—";
-    return `<span class="person-cell"><span class="avatar" style="background:${avatarColor(id)}">${initials(name)}</span>${esc(name)}${p && p.tecnico ? ' <span class="badge-tec">TÉC</span>' : ""}</span>`;
+    return `<span class="person-cell"><span class="avatar" style="background:${avatarColor(id)}">${initials(name)}</span>${esc(name)}${p && p.tecnico ? ` <span class="badge-tec">${esc(tecLabelUpper())}</span>` : ""}</span>`;
   }
 
   // ---------- Render: Dashboard ----------
@@ -624,8 +678,8 @@
       banner.innerHTML = `<div class="alert bad">
         <div class="a-icon">⚠️</div>
         <div>
-          <div class="a-title">${conflicts.length} conflicto${conflicts.length > 1 ? "s" : ""} de solapamiento entre técnicos</div>
-          <div class="a-body">Las personas técnicas no pueden ausentarse al mismo tiempo. Revisá:</div>
+          <div class="a-title">${conflicts.length} conflicto${conflicts.length > 1 ? "s" : ""} de solapamiento</div>
+          <div class="a-body">Las personas con rol “${esc(tecLabel())}” no pueden ausentarse al mismo tiempo. Revisá:</div>
           ${conflicts.map(([a, b]) => `<div class="conflict-item">• <strong>${esc(personName(a.personId))}</strong> (${esc(a.tipo)}, ${fmtHuman(a.desde)}–${fmtHuman(a.hasta)}) se cruza con <strong>${esc(personName(b.personId))}</strong> (${esc(b.tipo)}, ${fmtHuman(b.desde)}–${fmtHuman(b.hasta)})</div>`).join("")}
         </div>
       </div>`;
@@ -780,7 +834,7 @@
       return `<div class="person-card">
         <span class="avatar" style="background:${avatarColor(p.id)}">${initials(p.nombre)}</span>
         <div class="person-meta">
-          <div class="pn">${esc(p.nombre)} ${p.tecnico ? '<span class="badge-tec">TÉCNICO/A</span>' : ""}</div>
+          <div class="pn">${esc(p.nombre)} ${p.tecnico ? `<span class="badge-tec">${esc(tecLabelUpper())}</span>` : ""}</div>
           <div class="pr">${count} registro${count === 1 ? "" : "s"}${p.tecnico ? " · sujeto a regla de no solapamiento" : " · sin restricción de solapamiento"}</div>
         </div>
         <div class="row-actions">
@@ -793,7 +847,7 @@
 
   // ---------- Selects de personas ----------
   function fillPersonSelects() {
-    const opts = state.people.map(p => `<option value="${p.id}">${esc(p.nombre)}${p.tecnico ? " (técnico/a)" : ""}</option>`).join("");
+    const opts = state.people.map(p => `<option value="${p.id}">${esc(p.nombre)}${p.tecnico ? ` (${esc(tecLabel())})` : ""}</option>`).join("");
     document.getElementById("f-person").innerHTML = opts;
     const flp = document.getElementById("fl-person");
     const cur = flp.value;
@@ -803,6 +857,7 @@
 
   // ---------- Render maestro ----------
   function renderAll() {
+    applySettings();
     fillPersonSelects();
     renderDashboard();
     renderRegistros();
@@ -843,7 +898,7 @@
       (() => { const op = personById(e.personId); return op && op.tecnico; })()
     );
     if (clashes.length) {
-      warn.innerHTML = `⚠️ <strong>Atención:</strong> se superpone con ${clashes.map(e => `<strong>${esc(personName(e.personId))}</strong> (${esc(e.tipo)}, ${fmtHuman(e.desde)}–${fmtHuman(e.hasta)})`).join("; ")}. En el área solo hay dos técnicos y no pueden ausentarse a la vez. Podés guardarlo igual, pero quedará marcado como conflicto.`;
+      warn.innerHTML = `⚠️ <strong>Atención:</strong> se superpone con ${clashes.map(e => `<strong>${esc(personName(e.personId))}</strong> (${esc(e.tipo)}, ${fmtHuman(e.desde)}–${fmtHuman(e.hasta)})`).join("; ")}. Las personas con rol “${esc(tecLabel())}” no pueden ausentarse a la vez. Podés guardarlo igual, pero quedará marcado como conflicto.`;
       warn.classList.add("show");
     }
   }
@@ -1005,7 +1060,7 @@
     const sep = ";";
     const csvVal = v => { const s = String(v).replace(/"/g, '""'); return /[";\n]/.test(s) ? `"${s}"` : s; };
     const csv = "﻿" + [headers.join(sep), ...rows.map(r => headers.map(h => csvVal(r[h])).join(sep))].join("\r\n");
-    download(`permisos_ingenieria_datos_${stamp()}.csv`, csv, "text/csv;charset=utf-8;");
+    download(`permisos_${slug(areaName())}_${stamp()}.csv`, csv, "text/csv;charset=utf-8;");
     toast("CSV descargado");
   });
 
@@ -1024,12 +1079,12 @@
       </x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
       <body><table border="1" style="border-collapse:collapse;font-family:Calibri,Arial,sans-serif;font-size:12px">
       <thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table></body></html>`;
-    download(`permisos_ingenieria_datos_${stamp()}.xls`, "﻿" + html, "application/vnd.ms-excel;charset=utf-8;");
+    download(`permisos_${slug(areaName())}_${stamp()}.xls`, "﻿" + html, "application/vnd.ms-excel;charset=utf-8;");
     toast("Excel descargado");
   });
 
   document.getElementById("exportJson").addEventListener("click", function () {
-    download(`backup_permisos_${stamp()}.json`, JSON.stringify(state, null, 2), "application/json");
+    download(`backup_permisos_${slug(areaName())}_${stamp()}.json`, JSON.stringify(state, null, 2), "application/json");
     toast("Backup descargado");
   });
 
@@ -1043,6 +1098,7 @@
         const data = JSON.parse(reader.result);
         if (!Array.isArray(data.people) || !Array.isArray(data.entries)) throw new Error("Formato inválido");
         if (!confirm(`Esto reemplazará los datos actuales por ${data.entries.length} registro(s) y ${data.people.length} persona(s). ¿Continuar?`)) return;
+        data.settings = { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
         state = data; save(); renderAll(); toast("Backup importado");
       } catch (e) { toast("Archivo inválido: " + e.message); }
       ev.target.value = "";
@@ -1054,6 +1110,19 @@
     if (!state.entries.length) { toast("No hay registros para borrar"); return; }
     if (!confirm("¿Borrar TODOS los registros? Las personas se conservan. Esto no se puede deshacer.")) return;
     state.entries = []; save(); renderAll(); toast("Registros borrados");
+  });
+
+  // ---------- Ajustes: guardar / restaurar ----------
+  document.getElementById("settingsForm").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    S().areaName = document.getElementById("s-area").value.trim() || DEFAULT_SETTINGS.areaName;
+    S().tecLabel = document.getElementById("s-tec-label").value.trim() || DEFAULT_SETTINGS.tecLabel;
+    save(); renderAll(); toast("Ajustes guardados");
+  });
+  document.getElementById("resetSettings").addEventListener("click", function () {
+    if (!confirm("¿Restaurar el nombre de área y el rol a los valores por defecto?")) return;
+    state.settings = { ...DEFAULT_SETTINGS };
+    save(); renderAll(); toast("Ajustes restaurados");
   });
 
   // ---------- Navegación por pestañas ----------

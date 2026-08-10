@@ -31,10 +31,15 @@ solapamientos entre técnicos y exportación a Excel/CSV.
 - **Personas:** alta/edición; marcá quién es técnico/a.
 - **Datos:** exportar **CSV** (separado por `;`, abre en Excel es-AR),
   exportar **Excel** (`.xls`), **backup/restore** en JSON y borrado total.
+- **Ajustes:** cambiá el **nombre del área** (aparece en el encabezado, el pie y
+  los archivos exportados) y cómo llamás al **rol crítico** que no puede
+  ausentarse en simultáneo (por defecto “técnico/a”). Así otra área reutiliza la
+  misma herramienta sin tocar el código.
 
 ## Personalizar
 
+- Cambiá el **nombre del área** y el **rol crítico** en **Ajustes**.
 - Cambiá el nombre de la coordinación en **Personas → Editar**.
 - Agregá o quitá personas según cambie el equipo.
-- La regla de conflicto aplica **solo entre personas marcadas como técnicas**,
+- La regla de conflicto aplica **solo entre personas marcadas con el rol crítico**,
   así que sirve igual si el área crece.

@@ -18,7 +18,10 @@ export function CatalogLoader() {
     const attempt = async () => {
       tries++;
       try {
-        const res = await fetch(`${API}/api/public/catalog`, { cache: "no-store" });
+        const res = await fetch(`${API}/api/public/catalog`, {
+          cache: "no-store",
+          signal: AbortSignal.timeout(8000),
+        });
         if (res.ok) {
           const d = (await res.json()) as PublicCatalog;
           if (!cancelled) setData(d);

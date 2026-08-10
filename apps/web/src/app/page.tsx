@@ -17,7 +17,13 @@ export const metadata = {
 
 async function getCatalog(): Promise<PublicCatalog | null> {
   try {
-    const res = await fetch(`${API}/api/public/catalog`, { cache: "no-store" });
+    // Timeout corto: si la API está "dormida" y no responde rápido, cortamos y
+    // dejamos que el navegador reintente (CatalogLoader). Sin esto, el fetch se
+    // cuelga y la función de Vercel se cae por exceso de tiempo (error de deploy).
+    const res = await fetch(`${API}/api/public/catalog`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(6000),
+    });
     if (!res.ok) return null;
     return (await res.json()) as PublicCatalog;
   } catch {

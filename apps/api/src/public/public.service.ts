@@ -4,12 +4,34 @@ import { Prisma } from "@ferrestock/db";
 import { SettingsService } from "../settings/settings.service";
 import type { PublicCatalog, PublicCatalogItem } from "@ferrestock/shared";
 
+// Fecha de hoy en hora Argentina (offset fijo -3h) como "YYYY-MM-DD".
+function arDateString(): string {
+  const ar = new Date(Date.now() - 3 * 60 * 60 * 1000);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${ar.getUTCFullYear()}-${p(ar.getUTCMonth() + 1)}-${p(ar.getUTCDate())}`;
+}
+
 @Injectable()
 export class PublicService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService
   ) {}
+
+  // Cuenta una visita al catálogo (agregada por día). Se hace en el servidor,
+  // así ningún bloqueador del navegador la puede evitar. No rompe el catálogo si falla.
+  private async recordVisit(): Promise<void> {
+    try {
+      const date = arDateString();
+      await this.prisma.visitDay.upsert({
+        where: { date },
+        create: { date, count: 1 },
+        update: { count: { increment: 1 } },
+      });
+    } catch {
+      /* el contador es secundario: nunca frena el catálogo */
+    }
+  }
 
   // Catálogo para clientes (sin login). Devuelve SOLO datos seguros: nombre,
   // marca, precio final (con IVA) y si hay stock (no la cantidad exacta).
@@ -73,6 +95,9 @@ export class PublicService {
         category: p.category ? { id: p.category.id, name: p.category.name } : null,
       };
     });
+
+    // Cuenta la visita solo en la carga inicial (sin búsqueda), como page view.
+    if (!q) await this.recordVisit();
 
     // Solo los datos públicos del negocio (nunca el WhatsApp de soporte del admin).
     return {

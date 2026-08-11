@@ -241,6 +241,9 @@ export default function ConfigPage() {
             <Link href="/" target="_blank" className="btn btn-outline">
               Ver catálogo público ↗
             </Link>
+            <Link href="/visitas" className="btn btn-outline">
+              📈 Visitas al catálogo
+            </Link>
           </div>
         </section>
 

@@ -319,6 +319,16 @@ model InstallmentOption {
   @@map("installment_options")
 }
 
+// Contador de visitas al catálogo público, agregado por día (hora Argentina).
+// Se incrementa en el servidor cada vez que se sirve el catálogo, así ningún
+// bloqueador del navegador puede evitar la medición. Métrica interna (ADMIN).
+model VisitDay {
+  date  String @id // "YYYY-MM-DD" (hora AR)
+  count Int    @default(0)
+
+  @@map("visit_days")
+}
+
 // Datos del negocio (fila única id=1). Editable por ADMIN. Los usa el catálogo
 // público: nombre a mostrar y WhatsApp para "reservar/pedir" (E.164).
 model StoreSettings {

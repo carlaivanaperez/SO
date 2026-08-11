@@ -31,6 +31,13 @@ export class ReportsController {
     return this.reports.margins();
   }
 
+  // Visitas al catálogo (contador propio, métrica interna): solo ADMIN.
+  @Get("visits")
+  @Roles("ADMIN")
+  visits() {
+    return this.reports.visits();
+  }
+
   // Informe mensual (facturación + ganancia): solo ADMIN/MANAGER.
   // ?month=YYYY-MM (por defecto, el mes en curso en hora Argentina).
   @Get("monthly")

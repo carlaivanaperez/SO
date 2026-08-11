@@ -14,6 +14,13 @@ function startOfTodayAr(): Date {
   return new Date(midnightAr + AR_OFFSET_MS);
 }
 
+// Fecha "YYYY-MM-DD" en hora Argentina, `daysAgo` días atrás (0 = hoy).
+function arDateStr(daysAgo = 0): string {
+  const d = new Date(Date.now() - AR_OFFSET_MS - daysAgo * 24 * 60 * 60 * 1000);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())}`;
+}
+
 @Injectable()
 export class ReportsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -200,6 +207,33 @@ export class ReportsService {
         total: (p._sum.total ?? new Prisma.Decimal(0)).toString(),
       })),
       topProducts,
+    };
+  }
+
+  // Visitas al catálogo público (contador propio, server-side). Métrica interna.
+  async visits() {
+    const cutoff30 = arDateStr(29); // hace 29 días (incluye hoy = 30 días)
+    const cutoff7 = arDateStr(6);
+    const today = arDateStr(0);
+
+    const [rows, totalAgg] = await Promise.all([
+      this.prisma.visitDay.findMany({
+        where: { date: { gte: cutoff30 } },
+        orderBy: { date: "asc" },
+      }),
+      this.prisma.visitDay.aggregate({ _sum: { count: true } }),
+    ]);
+
+    const todayCount = rows.find((r) => r.date === today)?.count ?? 0;
+    const last7 = rows.filter((r) => r.date >= cutoff7).reduce((s, r) => s + r.count, 0);
+    const last30 = rows.reduce((s, r) => s + r.count, 0);
+
+    return {
+      today: todayCount,
+      last7,
+      last30,
+      total: totalAgg._sum.count ?? 0,
+      days: rows.map((r) => ({ date: r.date, count: r.count })),
     };
   }
 

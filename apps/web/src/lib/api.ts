@@ -205,6 +205,18 @@ export async function fetchMargins(): Promise<MarginRow[]> {
   return request<MarginRow[]>("/api/reports/margins");
 }
 
+export type VisitsReport = {
+  today: number;
+  last7: number;
+  last30: number;
+  total: number;
+  days: { date: string; count: number }[];
+};
+
+export async function fetchVisits(): Promise<VisitsReport> {
+  return request<VisitsReport>("/api/reports/visits");
+}
+
 export type MonthlyReport = {
   month: string;
   totals: {

@@ -171,6 +171,10 @@ Es la **fuente de verdad**. Entidades principales:
   encabezado). **`supportPhone` NO es público**: es el WhatsApp del admin que aparece
   en `/ayuda` (el endpoint público `PublicStore` lo omite; ver `public.service`). Se
   crea con defaults de forma perezosa (`SettingsService.getStore`).
+- **VisitDay** — contador propio de visitas al catálogo, agregado por día (hora AR).
+  Se incrementa **en el servidor** (`public.service.recordVisit`, en la carga inicial
+  sin búsqueda), así ningún bloqueador del navegador lo evita. Lo lee
+  `GET /api/reports/visits` (solo ADMIN) → pantalla `/visitas` (link en Ajustes).
 - **WhatsAppQuery** — registro de cada consulta entrante por WhatsApp (auditoría y métricas de demanda).
 
 **Importación masiva:** `POST /api/products/import` (ADMIN/MANAGER,
